@@ -1,2 +1,1 @@
-web: gunicorn store.wsgi --log-file
-web: python manage.py migrate && gunicorn store.wsg
+web: sh -c "python manage.py migrate && gunicorn aiswarya.wsgi:application --log-file -"

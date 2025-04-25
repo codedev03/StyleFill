@@ -1,3 +1,3 @@
-web: sh -c "python manage.py migrate && gunicorn aiswarya.wsgi:application"
+web: gunicorn aiswarya.wsgi
 
 

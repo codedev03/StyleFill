@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block content %}
+
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Shopping Cart</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">View your products...</p>
+                </div>
+            </div>
+        </header>
+        <br>
+        <div class="container">
+            {% if cart_products %}
+                {% for product in cart_products %}
+                <br>
+                    <div class="card mb-3">
+                        <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="...">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <center>
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description }}</p>
+                            {% if product.is_sale %}
+                            <div class="text-center">
+                                <!-- Product name-->
+                                <h5 class="fw-bolder">{{ product.name }}</h5>
+                                <!-- Product reviews-->
+                                <div class="d-flex justify-content-center small text-warning mb-2">
+                                    <div class="bi-star-fill"></div>
+                                    <div class="bi-star-fill"></div>
+                                    <div class="bi-star-fill"></div>
+                                    <div class="bi-star-fill"></div>
+                                    <div class="bi-star-fill"></div>
+                                </div>
+                                <!-- Product price-->
+                                <strike>
+                                    ₹{{ product.price }}
+                                </strike>
+                                &nbsp;
+                                ₹{{ product.sale_price }}
+                            </div>
+                            {% else %}
+                                ₹{{ product.price }}
+                            {% endif %}
+                            <br><br>
+                            <div class="row justify-content-center">
+                                <div class="col-md-2">Quantity:</div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="select{{ product.id }}">
+                                        <!-- <option selected> -->
+                                            <option value="" disabled selected>Select quantity</option> 
+                                            {% for key, value in quantities.items %}
+                                                {% if key == product.id|slugify %}
+                                                <option value="{{ value }}" selected>{{ value }}</option>  <!-- Set the selected value -->
+                                                {% endif %}
+                                            {% endfor %}
+                                        </option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <br>
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
+                            <button type="button" data-index="{{ product.id }}" class="btn btn-secondary update-cart">Update</button>
+                            <button type="button" data-index="{{ product.id }}" class="btn btn-danger delete-product">Remove Item</button>
+                            </center>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                <div align="right">
+                <h4>Total: ₹{{ totals }}</h4>
+                <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
+                </div>
+            {% else %}
+            Your Cart is Empty...
+            <br><br>
+<br><br>
+<br><br>
+{% endif %}
+        </div>
+        
+<br><br>
+<br><br>
+<br><br>
+
+<script>
+    // Update
+    // check if button is pressed
+    $(document).on('click', '.update-cart', function(e){
+        e.preventDefault();
+        // grab the product id
+        var productid = $(this).data('index');
+        var selectedQty = $('#select' + productid + ' option:selected').val(); // Use .val() to get the value
+
+        // Check if selectedQty is empty or not a valid number
+        if (!selectedQty || isNaN(selectedQty)) {
+            alert("Please select a valid quantity.");
+            return; // Exit the function if the quantity is invalid
+        }
+        $.ajax({
+        type: 'POST',
+        url: '{% url "cart_update" %}',
+        data: {
+            product_id: $(this).data('index'),
+            // product_qty:$('#select' + productid + 'option:selected').text(),
+            product_qty: selectedQty,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post',
+        },
+        success: function(json){
+            // console.log(json)
+            //document.getElementById("cart_quantity").textContent = json.qty
+            console.log("Cart updated successfully:", json);
+            location.reload();
+        },
+        error: function(xhr, errmsg, err){
+            // console.error("Error updating cart: " + errmsg); // Log error for debugging
+            console.error("Error updating cart:", xhr.status, xhr.responseText); // Log error for debugging
+            alert("An error occurred while updating the cart. Please try again."); // User feedback
+        },
+        });
+    });
+
+    //Delete Item from cart
+    $(document).on('click', '.delete-product', function(e){
+        e.preventDefault();
+        // grab the product id
+        var productid = $(this).data('index');
+        // var selectedQty = $('#select' + productid + ' option:selected').val(); // Use .val() to get the value
+
+        // Check if selectedQty is empty or not a valid number
+        // if (!selectedQty || isNaN(selectedQty)) {
+        //     alert("Please select a valid quantity.");
+        //     return; // Exit the function if the quantity is invalid
+        // }
+        $.ajax({
+        type: 'POST',
+        url: '{% url "cart_delete" %}',
+        data: {
+            product_id: productid, // Use the defined productid
+            // product_qty:$('#select' + productid + 'option:selected').text(),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post',
+        },
+        success: function(json){
+            console.log("Cart deleted successfully:", json);
+            location.reload();
+        },
+        error: function(xhr, errmsg, err){
+            // console.error("Error updating cart: " + errmsg); // Log error for debugging
+            console.error("Error deleting cart:", xhr.status, xhr.responseText); // Log error for debugging
+            alert("An error occurred while deleting the cart. Please try again."); // User feedback
+        },
+        });
+    });
+</script>
+{% endblock %}

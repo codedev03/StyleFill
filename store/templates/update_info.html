@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Header-->
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Update User Information</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Update user info /(:)\/(:)\</p>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="row">
+        <!-- <center> -->
+            <div class="col-8">
+                <br><br>
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>There were errors in your form:</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <strong>Billing Information</strong>
+                <form method="POST" action="{% url 'update_info' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <br><br>
+                    <strong>Shipping Information</strong>
+                    {{ shipping_form.as_p }}
+
+
+                    <br><br>
+                    <button type="submit" class="btn btn-secondary">
+                        Update Profile
+                    </button>
+
+                </form>
+                <br><br>
+                <br><br>
+                <br><br>
+                <br><br>
+            </div>
+        <!-- </center> -->
+    </div>
+</div>
+{% endblock %}

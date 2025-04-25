@@ -30,10 +30,20 @@ load_dotenv()
 SECRET_KEY = 'django-insecure-96^+2&=48%8m(31$*9xzf01%525q7s2fp9g&r6@oz87qio6fx4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['web-production-e92a.up.railway.app', 'https://web-production-e92a.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://web-production-e92a.up.railway.app']
+ALLOWED_HOSTS = [
+    'web-production-e92a.up.railway.app',
+    '127.0.0.1',
+    'localhost'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-e92a.up.railway.app',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
 
 # Application definition
 
@@ -58,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhitNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'aiswarya.urls'

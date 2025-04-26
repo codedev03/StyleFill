@@ -13,10 +13,7 @@ virt/
 ENV/
 *.env
 
-# Django
-/static/
-media/
-db.sqlite3
+
 
 # VS Code
 .vscode/

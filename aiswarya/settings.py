@@ -27,7 +27,7 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-96^+2&=48%8m(31$*9xzf01%525q7s2fp9g&r6@oz87qio6fx4'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -106,7 +106,7 @@ WSGI_APPLICATION = 'aiswarya.wsgi.application'
 #         'PASSWORD': os.environ.get('DB_PASSWORD_'),
 #         'HOST': 'postgres.railway.internal',
 #         'PORT': '5432',
-#         'default': dj_database_url.parse(config('DATABASE_URL'))
+# 
 #     }
 # }
 
@@ -145,18 +145,23 @@ USE_I18N = True
 
 USE_TZ = True
 
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = ['static/']
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
 
 #white noise static stuff
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFileStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type

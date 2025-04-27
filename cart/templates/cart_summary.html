@@ -1,169 +1,146 @@
 {% extends 'base.html' %}
 {% block content %}
 
-        <!-- Header-->
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Shopping Cart</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">View your products...</p>
+<!-- Kawaii Soft Header -->
+<header class="py-5" style="background: linear-gradient(135deg, #f9d5e5, #f6c1d1);">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold text-dark" style="font-family: 'Poppins', cursive;">🛒 Your Cart</h1>
+        <p class="lead text-muted" style="font-family: 'Poppins', cursive;">Sweet picks, just for you!</p>
+    </div>
+</header>
+
+<div class="container py-5">
+    {% if cart_products %}
+        {% for product in cart_products %}
+        <div class="card mb-4 shadow-sm rounded-4 border-0" style="background: #fff7fb;">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="{{ product.image.url }}" class="img-fluid rounded-start kawaii-img" alt="{{ product.name }}" style="object-fit: cover; height: 100%;">
+                </div>
+                <div class="col-md-8 d-flex flex-column justify-content-center p-4">
+                    <h4 class="fw-bold mb-2 text-pink" style="font-family: 'Poppins', cursive;">{{ product.name }}</h4>
+                    <p class="text-muted">{{ product.description }}</p>
+
+                    {% if product.is_sale %}
+                        <div class="text-start">
+                            <h5 class="text-decoration-line-through text-muted d-inline">₹{{ product.price }}</h5>
+                            <h5 class="d-inline ms-2 text-success">₹{{ product.sale_price }}</h5>
+                        </div>
+                    {% else %}
+                        <h5 class="text-dark">₹{{ product.price }}</h5>
+                    {% endif %}
+
+                    <div class="mt-3 d-flex align-items-center gap-2">
+                        <label for="select{{ product.id }}" class="fw-semibold">Qty:</label>
+                        <select class="form-select w-auto kawaii-select" id="select{{ product.id }}">
+                            <option value="" disabled selected>Select</option>
+                            {% for key, value in quantities.items %}
+                                {% if key == product.id|slugify %}
+                                <option value="{{ value }}" selected>{{ value }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            {% for i in "123456" %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary kawaii-btn me-2">🏠 Home</a>
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-outline-primary kawaii-btn update-cart me-2">🔄 Update</button>
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-outline-danger kawaii-btn delete-product">❌ Remove</button>
+                    </div>
                 </div>
             </div>
-        </header>
-        <br>
-        <div class="container">
-            {% if cart_products %}
-                {% for product in cart_products %}
-                <br>
-                    <div class="card mb-3">
-                        <div class="row g-0">
-                        <div class="col-md-4">
-                            <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="...">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <center>
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">{{ product.description }}</p>
-                            {% if product.is_sale %}
-                            <div class="text-center">
-                                <!-- Product name-->
-                                <h5 class="fw-bolder">{{ product.name }}</h5>
-                                <!-- Product reviews-->
-                                <div class="d-flex justify-content-center small text-warning mb-2">
-                                    <div class="bi-star-fill"></div>
-                                    <div class="bi-star-fill"></div>
-                                    <div class="bi-star-fill"></div>
-                                    <div class="bi-star-fill"></div>
-                                    <div class="bi-star-fill"></div>
-                                </div>
-                                <!-- Product price-->
-                                <strike>
-                                    ₹{{ product.price }}
-                                </strike>
-                                &nbsp;
-                                ₹{{ product.sale_price }}
-                            </div>
-                            {% else %}
-                                ₹{{ product.price }}
-                            {% endif %}
-                            <br><br>
-                            <div class="row justify-content-center">
-                                <div class="col-md-2">Quantity:</div>
-                                <div class="col-md-2">
-                                    <select class="form-select" id="select{{ product.id }}">
-                                        <!-- <option selected> -->
-                                            <option value="" disabled selected>Select quantity</option> 
-                                            {% for key, value in quantities.items %}
-                                                {% if key == product.id|slugify %}
-                                                <option value="{{ value }}" selected>{{ value }}</option>  <!-- Set the selected value -->
-                                                {% endif %}
-                                            {% endfor %}
-                                        </option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <br>
-                            <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
-                            <button type="button" data-index="{{ product.id }}" class="btn btn-secondary update-cart">Update</button>
-                            <button type="button" data-index="{{ product.id }}" class="btn btn-danger delete-product">Remove Item</button>
-                            </center>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-                {% endfor %}
-                <div align="right">
-                <h4>Total: ₹{{ totals }}</h4>
-                <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
-                </div>
-            {% else %}
-            Your Cart is Empty...
-            <br><br>
-<br><br>
-<br><br>
-{% endif %}
         </div>
-        
-<br><br>
-<br><br>
-<br><br>
+        {% endfor %}
+
+        <div class="text-end mt-5">
+            <h4 class="fw-bold text-dark">Total: ₹{{ totals }}</h4>
+            <a href="{% url 'checkout' %}" class="btn btn-success btn-lg kawaii-btn">🌸 Checkout</a>
+        </div>
+
+    {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">Your cart is empty... 🛒</h3>
+            <a href="{% url 'home' %}" class="btn btn-outline-pink kawaii-btn mt-3">Go Shopping!</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .text-pink {
+        color: #ff6f91;
+    }
+    .kawaii-img {
+        border-radius: 1rem 0 0 1rem;
+    }
+    .kawaii-btn {
+        border-radius: 2rem;
+        padding: 0.6rem 1.5rem;
+        font-family: 'Poppins', cursive;
+    }
+    .kawaii-select {
+        border-radius: 1rem;
+    }
+    .btn-outline-pink {
+        border: 1px solid #ff6f91;
+        color: #ff6f91;
+    }
+    .btn-outline-pink:hover {
+        background-color: #ff6f91;
+        color: white;
+    }
+</style>
 
 <script>
-    // Update
-    // check if button is pressed
     $(document).on('click', '.update-cart', function(e){
         e.preventDefault();
-        // grab the product id
         var productid = $(this).data('index');
-        var selectedQty = $('#select' + productid + ' option:selected').val(); // Use .val() to get the value
-
-        // Check if selectedQty is empty or not a valid number
+        var selectedQty = $('#select' + productid + ' option:selected').val();
         if (!selectedQty || isNaN(selectedQty)) {
             alert("Please select a valid quantity.");
-            return; // Exit the function if the quantity is invalid
+            return;
         }
         $.ajax({
-        type: 'POST',
-        url: '{% url "cart_update" %}',
-        data: {
-            product_id: $(this).data('index'),
-            // product_qty:$('#select' + productid + 'option:selected').text(),
-            product_qty: selectedQty,
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            action: 'post',
-        },
-        success: function(json){
-            // console.log(json)
-            //document.getElementById("cart_quantity").textContent = json.qty
-            console.log("Cart updated successfully:", json);
-            location.reload();
-        },
-        error: function(xhr, errmsg, err){
-            // console.error("Error updating cart: " + errmsg); // Log error for debugging
-            console.error("Error updating cart:", xhr.status, xhr.responseText); // Log error for debugging
-            alert("An error occurred while updating the cart. Please try again."); // User feedback
-        },
+            type: 'POST',
+            url: '{% url "cart_update" %}',
+            data: {
+                product_id: productid,
+                product_qty: selectedQty,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post',
+            },
+            success: function(json){
+                location.reload();
+            },
+            error: function(xhr, errmsg, err){
+                console.error("Error updating cart:", xhr.status, xhr.responseText);
+                alert("An error occurred while updating the cart. Please try again.");
+            },
         });
     });
 
-    //Delete Item from cart
     $(document).on('click', '.delete-product', function(e){
         e.preventDefault();
-        // grab the product id
         var productid = $(this).data('index');
-        // var selectedQty = $('#select' + productid + ' option:selected').val(); // Use .val() to get the value
-
-        // Check if selectedQty is empty or not a valid number
-        // if (!selectedQty || isNaN(selectedQty)) {
-        //     alert("Please select a valid quantity.");
-        //     return; // Exit the function if the quantity is invalid
-        // }
         $.ajax({
-        type: 'POST',
-        url: '{% url "cart_delete" %}',
-        data: {
-            product_id: productid, // Use the defined productid
-            // product_qty:$('#select' + productid + 'option:selected').text(),
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            action: 'post',
-        },
-        success: function(json){
-            console.log("Cart deleted successfully:", json);
-            location.reload();
-        },
-        error: function(xhr, errmsg, err){
-            // console.error("Error updating cart: " + errmsg); // Log error for debugging
-            console.error("Error deleting cart:", xhr.status, xhr.responseText); // Log error for debugging
-            alert("An error occurred while deleting the cart. Please try again."); // User feedback
-        },
+            type: 'POST',
+            url: '{% url "cart_delete" %}',
+            data: {
+                product_id: productid,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post',
+            },
+            success: function(json){
+                location.reload();
+            },
+            error: function(xhr, errmsg, err){
+                console.error("Error deleting from cart:", xhr.status, xhr.responseText);
+                alert("An error occurred while deleting the cart item. Please try again.");
+            },
         });
     });
 </script>
+
 {% endblock %}

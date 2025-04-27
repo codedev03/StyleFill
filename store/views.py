@@ -95,12 +95,12 @@ def category(request, cat):
     # Grab the category from the url
     try:
         #look up the category
-        category = Category.objects.get(name=cat)
+        category = Category.objects.get(name__iexact=cat)
         products = Product.objects.filter(category=category)
         return render(request, 'category.html', {'products': products, 'category':category})
 
-    except:
-        messages.success(request, ("That Category doesn't exist...."))
+    except Category.DoesNotExist:
+        messages.error(request, "That Category doesn't exist....")
         return redirect('home')
 
 

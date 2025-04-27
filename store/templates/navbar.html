@@ -40,9 +40,15 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'category_summary' %}">All Products</a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" href="{% url 'category' 'Jackets' %}">Jackets</a></li>
-                        <li><a class="dropdown-item" href="{% url 'category' 'Kurtas' %}">Kurtas</a></li>
-                        <li><a class="dropdown-item" href="{% url 'category' 'Tshirts' %}">T-Shirts</a></li>
+                        {% for category in categories %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'category' category.name|slugify %}">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li><span class="dropdown-item">No categories found</span></li>
+                        {% endfor %}
                     </ul>
                 </li>
             </ul>

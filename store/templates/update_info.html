@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<!-- Header-->
-<header class="bg-dark py-5">
+<!-- Header -->
+<header class="custom-gradient-header py-5">
     <div class="container px-4 px-lg-5 my-5">
         <div class="text-center text-white">
             <h1 class="display-4 fw-bolder">Update User Information</h1>
@@ -10,13 +10,14 @@
     </div>
 </header>
 
-<div class="container">
-    <div class="row">
-        <!-- <center> -->
-            <div class="col-8">
-                <br><br>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Card for form -->
+            <div class="card shadow-lg border-0 rounded-3 p-4">
+                <!-- Error Handling -->
                 {% if form.errors %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger rounded-3 p-3 mb-4">
                     <strong>There were errors in your form:</strong>
                     <ul>
                         {% for field in form %}
@@ -29,28 +30,32 @@
                         {% endfor %}
                     </ul>
                 </div>
-            {% endif %}
-            <strong>Billing Information</strong>
+                {% endif %}
+
+                <!-- Form Content -->
                 <form method="POST" action="{% url 'update_info' %}">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <br><br>
-                    <strong>Shipping Information</strong>
-                    {{ shipping_form.as_p }}
 
+                    <!-- Billing Information -->
+                    <div class="mb-4">
+                        <strong class="d-block mb-2 text-primary">Billing Information</strong>
+                        {{ form.as_p }}
+                    </div>
 
-                    <br><br>
-                    <button type="submit" class="btn btn-secondary">
+                    <!-- Shipping Information -->
+                    <div class="mb-4">
+                        <strong class="d-block mb-2 text-primary">Shipping Information</strong>
+                        {{ shipping_form.as_p }}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-gradient text-white w-100 py-2 rounded-pill">
                         Update Profile
                     </button>
-
                 </form>
-                <br><br>
-                <br><br>
-                <br><br>
-                <br><br>
             </div>
-        <!-- </center> -->
+        </div>
     </div>
 </div>
+
 {% endblock %}

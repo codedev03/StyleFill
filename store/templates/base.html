@@ -12,8 +12,11 @@
         <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
         <!-- Bootstrap icons-->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Cute Professional Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     </head>
     <body>
@@ -32,9 +35,13 @@
         {% endblock %}
 
         <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; StyleFill.STORE 2024</p></div>
+        <footer class="kawaii-footer">
+            <div class="container text-center">
+                <p class="footer-text mb-1">&copy; 2024 StyleFill.STORE — All rights reserved 🌸</p>
+                <p class="footer-text">Contact us: <a href="mailto:stylefill.store@gmail.com" class="footer-link">stylefill.store@gmail.com</a></p>
+            </div>
         </footer>
+        
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->

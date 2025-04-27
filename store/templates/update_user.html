@@ -1,36 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
-<!-- Header-->
-<header class="bg-dark py-5">
+
+<!-- Header -->
+<header class="header-gradient">
     <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">Update Profile</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Update user profile account /(:)\/(:)\</p>
+        <div class="text-center">
+            <h1 class="header-title">Update Profile</h1>
+            <p class="header-subtitle">Keep your profile up to date for the kawaii world! 🌸✨</p>
         </div>
     </div>
 </header>
 
-<div class="container">
-    <div class="row">
-        <!-- <center> -->
-            <div class="col-8">
-                <br><br>
+<!-- Profile Update Form -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <!-- Form Card -->
+            <div class="card shadow-lg border-0 rounded-3 p-4">
+                <h3 class="text-center mb-4">Update Your Profile</h3>
+                
                 <form method="POST" action="{% url 'update_user' %}">
                     {% csrf_token %}
-                    {{ user_form.as_p }}
-                    <br><br>
-                    <button type="submit" class="btn btn-secondary">
+                    <div class="form-group mb-3">
+                        {{ user_form.as_p }}
+                    </div>
+                    
+                    <!-- Update Button -->
+                    <button type="submit" class="btn btn-gradient text-white w-100 py-2">
                         Update Profile
                     </button>
-
                 </form>
-                <br><br>
-                <a href="{% url 'update_password' %}" class="btn btn-success">Update Password</a>
-                <br><br>
-                <br><br>
-                <br><br>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'update_password' %}" class="btn btn-outline-success btn-sm rounded-pill">
+                        Change Password 🛠️
+                    </a>
+                </div>
             </div>
-        <!-- </center> -->
+        </div>
     </div>
 </div>
+
 {% endblock %}

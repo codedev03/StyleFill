@@ -1,52 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
-<!-- Header-->
 
-<div class="container">
-    <div class="row">
-        <center>
-            <div class="col-8">
-                <br><br>
-                <h3>Shipped Items</h3>
-                <table class="table table-striped table-hover table-bordered">
-                    <thead class="table-dark">
-                      <tr>
-                        <th scope="col">Order</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Customer Email</th>
-                        <th scope="col">Date Shipped</th>
-                        <th scope="col">Shipped status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for item in orders %}
-                      <tr>
-                        <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
+<!-- Dashboard Header -->
+<section class="dashboard-header py-5">
+    <div class="container text-center">
+        <h2 class="fw-bold">📦 Shipped Items Dashboard</h2>
+        <p class="text-muted">Manage and track shipped orders efficiently</p>
+    </div>
+</section>
+
+<!-- Shipped Items Table -->
+<div class="container my-5">
+    <!-- Use the .card container to apply the card styling from CSS -->
+    <div class="card shadow-lg p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Price</th>
+                        <th>Customer Email</th>
+                        <th>Date Shipped</th>
+                        <th>Shipping Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in orders %}
+                    <tr>
+                        <td><a href="{% url 'orders' item.id %}" class="text-decoration-none fw-bold text-primary">#{{ item.id }}</a></td>
                         <td>₹{{ item.amount_paid }}</td>
                         <td>{{ item.email }}</td>
                         <td>{{ item.date_shipped }}</td>
                         <td>
-                          <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="shipping_status" value="false">
-                            <input type="hidden" name="num" value="{{ item.id }}">
-                            <button type="submit" class="btn btn-danger btn-small">Mark Unshipped</button>
-                          </form>
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="shipping_status" value="false">
+                                <input type="hidden" name="num" value="{{ item.id }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Mark Unshipped</button>
+                            </form>
                         </td>
-                      </tr>
-                      {% endfor %}
-                      
-                    </tbody>
-                  </table>
-                <br><br>
-                <br><br>
-                <br><br>
-                <br><br>
-                <br><br>
-                <br><br>
-                <br><br>
-            </div>
-        </center>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
 {% endblock %}

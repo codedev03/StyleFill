@@ -70,7 +70,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
-
+WHITENOISE_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'aiswarya.urls'
 
 TEMPLATES = [

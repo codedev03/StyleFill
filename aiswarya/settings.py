@@ -97,23 +97,25 @@ WSGI_APPLICATION = 'aiswarya.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         # 'ENGINE': 'django.db.backends.sqlite3',
-#         # 'NAME': BASE_DIR / 'db.sqlite3',
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'railway',
-#         'USER': 'postgres',
-#         'PASSWORD': os.environ.get('DB_PASSWORD_'),
-#         'HOST': 'postgres.railway.internal',
-#         'PORT': '5432',
-# 
-#     }
-# }
-
 DATABASES = {
-    'default': dj_database_url.parse(config('DATABASE_URL'))
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': os.environ.get('DB_PASSWORD_'),
+        # 'HOST': 'postgres.railway.internal',
+        'HOST': 'localhost',
+        'PORT': '5432',
+
+    }
 }
+
+# Comment out the dj_database_url configuration
+# DATABASES = {
+#     'default': dj_database_url.parse(config('DATABASE_URL'))
+# }
 
 
 # Password validation
@@ -161,6 +163,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# settings.py
+RAZORPAY_KEY_ID = 'rzp_test_BPXPob227YrMYQ'  # Replace with your actual Razorpay test key ID
+RAZORPAY_KEY_SECRET = 'uAFvStGyR5HVF73EVuqp4UtQ'  # Replace with your actual Razorpay test key secret
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

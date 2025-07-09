@@ -1,15 +1,68 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 
         <!-- Header-->
-        <header class="bg-dark py-5">
+        <header class="py-5" style="
+            background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #ffecd2, #fcb69f);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            position: relative;
+            overflow: hidden;
+        ">
+          <!-- Checker pattern overlay -->
+            <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDEwIDEwIj48cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48cmVjdCB4PSI1IiB5PSI1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=');
+            opacity: 0.4;
+        "></div>
             <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Billing Info</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Enter Your payment Info...</p>
+                <div class="text-center text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                    <h1 class="display-4 fw-bolder" style="
+                        font-family: 'Comic Sans MS', cursive; 
+                        color: #fff;
+                        position: relative;
+                        display: inline-block;
+                    ">
+                        <span style="
+                            display: inline-block;
+                            padding: 0 15px;
+                            background: rgba(255,255,255,0.2);
+                            border-radius: 20px;
+                            backdrop-filter: blur(5px);
+                        ">
+                            Billing Info ✨
+                        </span>
+                    </h1>
+                    <p class="lead mb-0" style="
+                        font-family: 'Comic Sans MS', cursive;
+                        color: #fff;
+                        margin-top: 15px;
+                        font-size: 1.5rem;
+                    ">
+                        Enter your payment details~ 💖
+                    </p>
                 </div>
             </div>
         </header>
+        <style>
+            @keyframes gradientMove {
+                0% { background-position: 0% 50% }
+                50% { background-position: 100% 50% }
+                100% { background-position: 0% 50% }
+            }
+            
+            /* Optional cute floating elements */
+            .kawaii-floating {
+                position: absolute;
+                opacity: 0.6;
+                animation: float 6s ease-in-out infinite;
+            }
+        </style>
         <br>
         <div class="container">
             <div class="row">
@@ -21,12 +74,13 @@
                             </div>
                             <div class="card-body">
                                 {% for product in cart_products %}
-                                    {{ product.name }}:
+                                    <p>{{ product.name }}:
                                         {% if product.is_sale %}
                                             ₹{{ product.sale_price }}
                                         {% else %}
-                                        ₹{{ product.price }}
-                                    {% endif %}
+                                            ₹{{ product.price }}
+                                        {% endif %}
+                                    </p>
                                     <br>
                                     <small>
                                     Quantity:
@@ -37,9 +91,10 @@
                                     {% endfor %}
                                     </small>
                                     <br><br>
-                                    
                                 {% endfor %}
-                                <strong>Total: ₹{{ totals }}</strong>
+                                <strong>Subtotal: ₹{{ totals }}</strong><br>
+                                <strong>Shipping Cost: ₹{{ shipping_info.cost }}</strong><br>
+                                <strong>Total: ₹{{ total_amount }}</strong>
                                 <br><br>
                                 <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update Items</a>
                             </div>
@@ -50,14 +105,14 @@
                               Shipping Info
                             </div>
                             <div class="card-body">
-                                Name: {{ shipping_info.shipping_full_name }}<br>
-                                Email: {{ shipping_info.shipping_email }}<br>
-                                Address 1: {{ shipping_info.shipping_address1 }}<br>
-                                Address 2: {{ shipping_info.shipping_address2 }}<br>
-                                City: {{ shipping_info.shipping_city }}<br>
-                                State: {{ shipping_info.shipping_state }}<br>
-                                Zipcode: {{ shipping_info.shipping_zipcode }}<br>
-                                Country: {{ shipping_info.shipping_country }}<br>
+                                <p>Name: {{ shipping_info.shipping_full_name }}</p>
+                                <p>Email: {{ shipping_info.shipping_email }}</p>
+                                <p>Address 1: {{ shipping_info.shipping_address1 }}</p>
+                                <p>Address 2: {{ shipping_info.shipping_address2 }}</p>
+                                <p>City: {{ shipping_info.shipping_city }}</p>
+                                <p>State: {{ shipping_info.shipping_state }}</p>
+                                <p>Zipcode: {{ shipping_info.shipping_zipcode }}</p>
+                                <p>Country: {{ shipping_info.shipping_country }}</p>
                                 <br>
                                 <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping</a>
                             </div>
@@ -65,24 +120,92 @@
                           <br>
                           <div class="card">
                             <div class="card-header">
-                              Billing Info
+                                Payment Info
                             </div>
                             <div class="card-body">
-                                <form action="{% url 'process_order' %}" method="POST">
-                                    {% csrf_token %}
-                                    {{ billing_form.as_p }}
+                                <!-- <form method="POST" id="payment-form">
+                                    {% csrf_token %} -->
+                                    
+                                    <!-- Display messages only once -->
+                                    <!-- {% if messages %}
+                                    <div class="alert alert-danger">
+                                        {% for message in messages %}
+                                        <p>{{ message }}</p>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %} -->
+                                    <button type="submit" class="btn btn-primary" id="google-pay-button">Pay with Google Pay</button>
+                                <!-- </form> -->
                             </div>
-                          
+                        </div>
                     </div>
-                    <br>
-                    <button type="submit" class="btn btn-secondary">Pay Now</button>
-                </form>
+                </div>
             </div>
-        </div>
-        
-<br><br>
-<br><br>
-<br><br>
 
+<br><br>
+<br><br>
+<br><br>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function handlePaymentError(error) {
+        console.error('Payment Error:', error);
+        alert('Payment failed: ' + error.message);
+    }
+</script>
+<script>
+    document.getElementById('google-pay-button').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent default form submission
+        // Call your backend to create an order and get the order ID
+        fetch('/payment/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                total_amount: {{ total_amount|floatformat:0 }},
+                shipping_info: {{ shipping_info|safe }}  // Pass shipping info if needed
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Order Creation Response:", data); // Log the response
+            console.log("Razorpay Key:", "{{ razorpay_merchant_key }}");
+            if (data.order_id) {
+                var options = {
+                    "key": "{{ razorpay_merchant_key }}", // Your Razorpay key
+                    "amount": data.amount, // Amount in paise
+                    "currency": "INR",
+                    "name": "StyleFill",
+                    "description": "Your One stop kawaii world",
+                    "image": "{% static 'assets/favicon.ico' %}", // Your logo
+                    "order_id": data.order_id, // Pass the order ID
+                    "handler": function (response) {
+                        // Handle successful payment here
+                        alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
+                        // Optionally redirect to a success page
+                        window.location.href = "{% url 'payments_success' %}?payment_id=" + response.razorpay_payment_id; // Update with your success URL
+                    },
+                    "prefill": {
+                        "name": "{{ shipping_info.shipping_full_name }}",
+                        "email": "{{ shipping_info.shipping_email }}",
+                        "contact": "{{ shipping_info.shipping_phone }}" // Add phone if available
+                    },
+                    "theme": {
+                        "color": "#F37254"
+                    }
+                };
 
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            } else {
+                alert("Failed to create order. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("An error occurred while processing your payment.");
+        });
+    });
+</script>
 {% endblock %}

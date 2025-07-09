@@ -1,15 +1,108 @@
 {% extends 'base.html' %}
 {% block content %}
 
-        <!-- Header-->
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Checkout</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Review Your Order...</p>
-                </div>
-            </div>
-        </header>
+<!-- Header-->
+<header class="py-5" style="
+            background: linear-gradient(270deg, #c6dbff, #ffe6c7, #fbc2eb, #a6c1ee, #ffecd2, #fcb69f);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            position: relative;
+            overflow: hidden;
+        ">
+    <!-- Checker pattern overlay -->
+    <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDEwIDEwIj48cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48cmVjdCB4PSI1IiB5PSI1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4='); 
+            opacity: 0.4;
+        "></div>
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            <h1 class="display-4 fw-bolder animated-header" style="
+                font-family: 'Comic Sans MS', cursive; 
+                color: #ffe6c7;
+                position: relative;
+                display: inline-block;
+            ">
+                <span style="
+                    display: inline-block;
+                    padding: 0 15px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 20px;
+                    backdrop-filter: blur(5px);
+                ">
+                    Checkout 🛒
+                </span>
+            </h1>
+            <p class="lead mb-0 animated-header" style="
+                font-family: 'Comic Sans MS', cursive;
+                color: #ffe6c7;
+                margin-top: 15px;
+                font-size: 1.5rem;
+            ">
+                Review Your Order... 💖
+            </p>
+        </div>
+    </div>
+</header>
+
+<style>
+    @keyframes gradientMove {
+        0% { background-position: 0% 50% }
+        50% { background-position: 100% 50% }
+        100% { background-position: 0% 50% }
+    }
+
+    /* Animation for header text */
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-20px);
+        }
+        60% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .animated-header {
+        animation: bounce 2s infinite;
+    }
+
+    /* Checker Animation */
+    .checker-animation {
+        width: 100px; /* Width of the checker */
+        height: 100px; /* Height of the checker */
+        margin: 20px auto; /* Center the checker */
+        background: repeating-linear-gradient(
+            45deg,
+            #ffe6c7,
+            #ffe6c7 25%,
+            #c6dbff 25%,
+            #c6dbff 50%
+        );
+        animation: checker 1s linear infinite;
+    }
+
+    @keyframes checker {
+        0% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+</style>
+
+
+
         <br>
         <div class="container">
             <div class="row">
@@ -37,7 +130,6 @@
                                     {% endfor %}
                                     </small>
                                     <br><br>
-                                    
                                 {% endfor %}
                                 <strong>Total: ₹{{ totals }}</strong>
                                 <br><br>
@@ -51,20 +143,60 @@
                             </div>
                             <div class="card-body">
                                 <form method="POST" action="{% url 'billing_info' %}">
-                                {% csrf_token %}
-                                {{ shipping_form.as_p }}
+                                    {% csrf_token %}
+                                    {{ shipping_form.as_p }}
+
+                                    <!-- Shipping Method Selection -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Select Shipping Method:</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="shipping_method" id="standard_shipping" value="standard" data-cost="50" checked>
+                                            <label class="form-check-label" for="standard_shipping">
+                                                Standard Shipping (₹50)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="shipping_method" id="express_shipping" value="express" data-cost="100">
+                                            <label class="form-check-label" for="express_shipping">
+                                                Express Shipping (₹100)
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div id="shipping_cost" class="mb-3">
+                                        <strong>Shipping Cost: ₹<span id="shipping_cost_value">0</span></strong>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-secondary">Continue To billing</button>
+                                </form>
                             </div>
-                          </div>
-                          <br>
-                          <button type="submit" class="btn btn-secondary">Continue To billing</button>
-                        </form>
+                        </div>
                     </div>
+                </div>
             </div>
-        </div>
-        
+
 <br><br>
 <br><br>
 <br><br>
 
+<script>
+    document.querySelectorAll('input[name="shipping_method"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var shippingCost = this.getAttribute('data-cost');
+            document.getElementById('shipping_cost_value').textContent = shippingCost;
+            document.getElementById('shipping_cost_hidden').value = shippingCost;
+        });
+    });
+
+    // Optional: Trigger on page load to set default cost
+    window.addEventListener('DOMContentLoaded', function () {
+        const selected = document.querySelector('input[name="shipping_method"]:checked');
+        if (selected) {
+            const cost = selected.getAttribute('data-cost');
+            document.getElementById('shipping_cost_value').textContent = cost;
+            document.getElementById('shipping_cost_hidden').value = cost;
+        }
+    });
+</script>
 
 {% endblock %}

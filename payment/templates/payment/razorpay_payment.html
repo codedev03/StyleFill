@@ -1,0 +1,53 @@
+{% extends 'base.html' %}  <!-- This must be the first line -->
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Razorpay Payment Page</h1>
+    <p>Your payment details will be processed here.</p>
+
+    <script>
+        var options = {
+            "key": "{{ rzp_test_BPXPob227YrMYQ }}", // Replace with your Razorpay key
+            "amount": {{ total_amount|floatformat:0 }}, // Amount in paise
+            "currency": "INR",
+            "name": "Your Company Name",
+            "description": "Test Transaction",
+            "image": "{% static 'assets/favicon.ico' %}", // Your logo
+            "order_id": "{{ razorpay_order_id }}", // Pass the order ID
+            "handler": function (response){
+                // Handle successful payment here
+                alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
+                // Optionally redirect to a success page
+                window.location.href = "{% url 'payments_success' %}"; // Update with your success URL
+            },
+            "prefill": {
+                "name": "{{ shipping_info.shipping_full_name }}",
+                "email": "{{ shipping_info.shipping_email }}",
+                "contact": "{{ shipping_info.shipping_phone }}" // Add phone if available
+            },
+            "theme": {
+                "color": "#F37254"
+            },
+            "modal": {
+                "ondismiss": function(){
+                    // Handle the case when the user closes the modal
+                    alert("Payment process was cancelled.");
+                }
+            }
+        };
+        
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    </script>
+</body>
+</html>
+{% endblock %}

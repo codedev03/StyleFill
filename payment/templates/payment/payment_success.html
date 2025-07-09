@@ -11,13 +11,39 @@
             </div>
         </header>
         <br>
-        <div class="container">
-            Payment Success...
+        <div class="container text-center mt-5">
+            <div style="max-width: 300px; margin: auto;">
+                <!-- Lottie animation -->
+                <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                <lottie-player
+                    src="https://assets1.lottiefiles.com/packages/lf20_jbrw3hcz.json"
+                    background="transparent"
+                    speed="1"
+                    style="width: 300px; height: 300px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+
+            <h2 class="mt-4 text-success fw-bold">Payment Successful!</h2>
+            <p class="lead">Thank you for your purchase. Your payment has been processed.</p>
+            <p>🧾 Payment ID: <strong>{{ payment_id }}</strong></p>
+            <a href="{% url 'home' %}" class="btn btn-primary mt-3">🏡 Go to Home</a>
         </div>
+        
         
 <br><br>
 <br><br>
 <br><br>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    // Simple confetti burst
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+</script>
 
 {% endblock %}

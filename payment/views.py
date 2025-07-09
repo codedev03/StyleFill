@@ -1,12 +1,18 @@
+import datetime
+import razorpay
+import json
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from cart.cart import Cart
 from payment.forms import ShippingForm, PaymentForm
 from payment.models import ShippingAddress, Order, OrderItem
 from django.contrib.auth.models import User
 from django.contrib import messages
 from store.models import Product, Profile
-import datetime
-
+from decimal import Decimal
+from django.conf import settings
+import logging
+logger = logging.getLogger(__name__)
 # Create your views here.
 def orders(request, pk):
     if request.user.is_authenticated and request.user.is_superuser:
@@ -33,8 +39,6 @@ def orders(request, pk):
     else:
         messages.success(request, "Access Denied!")
         return redirect('home')
-
-
 
 def not_shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
@@ -69,10 +73,6 @@ def shipped_dash(request):
     else:
         messages.success(request, "Access Denied!")
         return redirect('home')
-
-
-
-
 
 def process_order(request):
     if request.POST:
@@ -160,38 +160,105 @@ def process_order(request):
         messages.success(request, "Access Denied")
         return redirect('home')
 
-
+def create_order(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        total_amount = data.get('total_amount')
+        shipping_info = data.get('shipping_info')
+        logger.info(f"Creating order with amount: {total_amount} and shipping info: {shipping_info}")
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            razorpay_order = client.order.create({
+                'amount': int(total_amount * 100),  # Amount in paise
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            return JsonResponse({
+                'order_id': razorpay_order['id'],
+                'amount': razorpay_order['amount']
+            })
+        except Exception as e:
+            logger.error(f"Error creating order: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=400)
 
 def billing_info(request):
-    if request.POST:
-        cart = Cart(request)
-        cart_products = cart.get_prods
-        quantities = cart.get_quants
-        totals = cart.cart_total()
+    # Initialize cart and get common data (for both GET and POST)
+    cart = Cart(request)
+    cart_products = cart.get_prods
+    quantities = cart.get_quants
+    totals = cart.cart_total()
+    
+    if request.method == 'POST':
+        # Handle shipping and payment data
+        shipping_method = request.POST.get('shipping_method')
+        shipping_cost = 50 if shipping_method == 'standard' else 100
+        total_amount = totals + shipping_cost
+
+
         #Create a session with shipping info
-        my_shipping = request.POST
+        my_shipping = {
+            'method': shipping_method,
+            'cost': shipping_cost,
+            'shipping_full_name': request.POST.get('shipping_full_name'),
+            'shipping_email': request.POST.get('shipping_email'),
+            'shipping_address1': request.POST.get('shipping_address1'),
+            'shipping_address2': request.POST.get('shipping_address2'),
+            'shipping_city': request.POST.get('shipping_city'),
+            'shipping_state': request.POST.get('shipping_state'),
+            'shipping_zipcode': request.POST.get('shipping_zipcode'),
+            'shipping_country': request.POST.get('shipping_country'),
+        }
         request.session['my_shipping'] = my_shipping
 
+        return render(request, "payment/billing_info.html", {
+            "cart_products": cart_products,
+            "quantities": quantities,
+            "totals": totals,
+            "shipping_info": my_shipping,
+            "total_amount": total_amount,
+            "razorpay_merchant_key": settings.RAZORPAY_KEY_ID
+        })
 
-        # Check to see if user is logged in
-        if request.user.is_authenticated:
-            # get the billing form
-            billing_form = PaymentForm()
-            return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":request.POST, "billing_form":billing_form})
-        else:
-            # get the billing form
-            billing_form = PaymentForm()
-            # Not logged in
-            return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":request.POST, "billing_form":billing_form})
-        shipping_form = request.POST
-        return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form})
-    else:
-        messages.success(request, "Access Denied")
-        return redirect('home')
+    # For GET requests or invalid data
+    if not request.session.get('my_shipping'):
+        messages.error(request, "Please complete shipping information first")
+        return redirect('checkout')
+        
+    return render(request, "payment/billing_info.html", {
+        "cart_products": cart_products,
+        "quantities": quantities,
+        "totals": totals,
+        "shipping_info": request.session['my_shipping'],
+        "total_amount": totals + (50 if request.session['my_shipping'].get('method') == 'standard' else 100),
+        "razorpay_merchant_key": settings.RAZORPAY_KEY_ID  # Pass the key to the template
+    })
+    #     # Check to see if user is logged in
+    #     if request.user.is_authenticated:
+    #         # get the billing form
+    #         billing_form = PaymentForm()
+    #         return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":my_shipping, "billing_form":billing_form, "total_amount":total_amount})
+    #     else:
+    #         # get the billing form
+    #         billing_form = PaymentForm()
+    #         # Not logged in
+    #         return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":request.POST, "billing_form":billing_form})
+    #     shipping_form = request.POST
+    #     return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form})
+    # else:
+    #     messages.success(request, "Access Denied")
+    #     return redirect('home')
+        
 
 
 def payments_success(request):
-    return render(request, "payment/payment_success.html", {})
+    payment_id = request.GET.get('payment_id')  # Get the payment ID from the URL
+    # You can log the payment ID or perform any actions needed
+    logger.info(f"Payment successful with ID: {payment_id}")
+    # Clear the user's cart
+    cart = Cart(request)
+    cart.clear()
+    messages.success(request, "Your order was successful! 🎉 Cart is now cleared.")
+    return render(request, "payment/payment_success.html", {"payment_id": payment_id})
 
 def checkout(request):
     cart = Cart(request)

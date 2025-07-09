@@ -5,45 +5,131 @@
     <div class="container px-4 px-lg-5 my-5">
         <div class="text-center text-white">
             <h1 class="display-4 fw-bolder">About Us...</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Welcome to StyleFill (❁´◡`❁) /(:)\/(:)\</p>
+            <p class="lead fw-normal text-white-50 mb-3">Welcome to StyleFill (❁´◡`❁) /(:)\/(:)\</p>
         </div>
     </div>
 </header>
 
 <div class="container">
-    <div class="row">
-        <center>
-            <div class="col-8">
-                <br><br>
-                <p align="justify">
-                    Welcome to StyleFill – your ultimate destination for chic and trendy lifestyle dresses and accessories!
-
-At StyleFill, we believe that fashion is more than just clothing; it’s a way to express your individuality and confidence. Our journey began with a simple idea: to create a space where fashion enthusiasts can find unique, high-quality pieces that reflect their personal style.
-<br><br>
-Our Story
-<br><br>
-Founded in 2004, StyleFill was born out of a passion for fashion and a desire to make stylish, affordable clothing accessible to everyone. Our founder, Nazeer K U, envisioned a brand that combines the latest trends with timeless elegance, ensuring that every piece in our collection is a perfect blend of style and comfort.
-<br><br>
-What We Offer
-<br><br>
-From elegant dresses to statement accessories, our curated collections are designed to cater to every occasion and mood. Whether you’re looking for a casual outfit for a day out or a glamorous dress for a special event, StyleFill has something for everyone. Our products are carefully selected to ensure they meet our high standards of quality and style.
-<br><br>
-Our Mission
-<br><br>
-At StyleFill, our mission is to empower individuals to express themselves through fashion. We are committed to providing our customers with the best shopping experience, from the moment they visit our website to the time they receive their order. We believe in the power of fashion to inspire confidence and joy, and we strive to make every shopping experience with us a delightful one.
-<br><br>
-Why Choose Us?
-<br><br>
-Quality: We prioritize quality in every piece we offer, ensuring that our customers receive only the best.
-Trendy: Our collections are always up-to-date with the latest fashion trends, so you can stay ahead of the curve.
-Affordable: We believe that great style shouldn’t come with a hefty price tag. Our products are priced to be accessible to everyone.
-Customer-Centric: Your satisfaction is our top priority. We are here to assist you with any queries and ensure a seamless shopping experience.
-<br><br>
-Thank you for choosing StyleFill. We are excited to be a part of your fashion journey and look forward to helping you fill your wardrobe with style!
-                </p>
-                <br><br>
+    <div class="row g-4"> <!-- Added gutter spacing between boxes -->
+        <div class="col-md-6">
+            <div class="bento-box pastel-peach">
+                <h3><i class="fas fa-heart me-2"></i>What is StyleFill?</h3>
+                <div class="divider"></div>
+                <p>Founded by creative souls, StyleFill is your magical portal to adorable kawaii fashion and handmade treasures that won't break the bank! ✨</p>
             </div>
-        </center>
+        </div>
+        <div class="col-md-6">
+            <div class="bento-box pastel-mint">
+                <h3><i class="fas fa-star me-2"></i>Our Ethos</h3>
+                <div class="divider"></div>
+                <p>We believe fashion should be joyful, sustainable and accessible. Each piece is lovingly chosen or handmade with good vibes only! 🌈</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="bento-box pastel-lavender">
+                <h3><i class="fas fa-hand-holding-heart me-2"></i>Handmade Magic</h3>
+                <div class="divider"></div>
+                <p>Discover unique handmade pieces where every stitch tells a story. Support independent creators and use something truly special! 🧵</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="bento-box pastel-sky">
+                <h3><i class="fas fa-gem me-2"></i>Why We're Different</h3>
+                <div class="divider"></div>
+                <ul class="bohemian-list">
+                    <li>💫 Quality that lasts beyond trends</li>
+                    <li>🌿 Mindful, sustainable materials</li>
+                    <li>✌️ Prices that don't dim your sparkle</li>
+                    <li>🌸 One-of-a-kind finds you won't see everywhere</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bohemian divider -->
+    <div class="text-center my-5">
+        <div class="bohemian-divider">
+            ✽ ✽ ✽
+        </div>
+    </div>
+    
+    <!-- Final CTA -->
+    <div class="text-center mb-5">
+        <p class="lead">Come wander through our wonderland of whimsy~</p>
+        <p>Every purchase supports a dreamer's passion ✨</p>
     </div>
 </div>
+
+<style>
+    /* Pastel color palette */
+    .bento-box {
+        border: 3px solid #333;
+        border-radius: 12px;
+        padding: 25px;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+    }
+    
+    .pastel-peach {
+        background-color: #FFDAC1;
+        border-color: #E8A87C;
+    }
+    
+    .pastel-mint {
+        background-color: #E2F0CB;
+        border-color: #86C67C;
+    }
+    
+    .pastel-lavender {
+        background-color: #D8BFD8;
+        border-color: #9370DB;
+    }
+    
+    .pastel-sky {
+        background-color: #B5E8F7;
+        border-color: #5DADE2;
+    }
+    
+    .bento-box:hover {
+        transform: translateY(-5px) rotate(1deg);
+        box-shadow: 8px 8px 0px rgba(0,0,0,0.15);
+    }
+    
+    .bento-box h3 {
+        font-family: 'Courier New', monospace;
+        color: #5D4037;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .divider {
+        height: 2px;
+        background: linear-gradient(to right, transparent, #5D4037, transparent);
+        margin: 10px 0 15px;
+    }
+    
+    .bohemian-list {
+        list-style-type: none;
+        padding-left: 5px;
+    }
+    
+    .bohemian-list li {
+        margin-bottom: 8px;
+    }
+    
+    .bohemian-divider {
+        color: #E8A87C;
+        font-size: 24px;
+        letter-spacing: 5px;
+        margin: 20px 0;
+    }
+    
+    @media (max-width: 768px) {
+        .bento-box {
+            margin-bottom: 20px;
+        }
+    }
+</style>
 {% endblock %}

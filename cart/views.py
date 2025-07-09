@@ -10,15 +10,15 @@ logger = logging.getLogger(__name__)
 def cart_summary(request):
     # get the cart
     cart = Cart(request)
-    cart_products = cart.get_prods
-    quantities = cart.get_quants
+    cart_products = cart.get_prods()
+    quantities = cart.get_quants()
     totals = cart.cart_total()
     return render(request, "cart_summary.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals})
 
 def cart_add(request):
     cart = Cart(request)
     #test for POST
-    if request.POST.get('action') == 'post':
+    if request.method == 'POST' and request.POST.get('action') == 'post':
         product_id = int(request.POST.get('product_id'))
         product_qty = int(request.POST.get('product_qty'))
         product = get_object_or_404(Product, id=product_id)
@@ -26,7 +26,8 @@ def cart_add(request):
         # Get cart quantity
         cart_quantity = cart.__len__()
         # response = JsonResponse({'Product Name: ': product.name })
-        response = JsonResponse({'qty ': cart_quantity })
+        # Return JSON response with updated cart quantity
+        response = JsonResponse({'success': True,'qty ': cart_quantity })
         messages.success(request, ("You have added the products..whoohooo.."))
         return response
 
@@ -55,6 +56,8 @@ def cart_update(request):
         response = JsonResponse({'qty': product_qty})
         messages.success(request, ("Your cart has been updated...whoohooo.."))
         return response
+    
+
 
 # def cart_update(request):
 #     logger.debug(f"POST data: {request.POST}")

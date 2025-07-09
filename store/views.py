@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
-from .models import Product, Category, Profile
+from .models import Product, Category, Profile, ProductImage, Review
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User 
 from django.contrib.auth.forms import UserCreationForm 
-from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm
+from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm, ReviewForm
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
 from django import forms
@@ -106,7 +106,20 @@ def category(request, cat):
 
 def product(request, pk):
     product = Product.objects.get(id=pk)
-    return render(request, 'product.html', {'product':product})
+    images = product.images.all()
+    reviews = Review.objects.filter(product=product)
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product = product
+            review.username = request.user.username  # Use the logged-in user's username
+            review.rating = request.POST.get('rating')  # Get the rating from the hidden input
+            review.save()
+            return redirect('product', pk=pk)  # Redirect to the same product page after saving
+    else:
+        form = ReviewForm()
+    return render(request, 'product.html', {'product':product, 'images':images, 'reviews': reviews,'form': form,})
 
 def home(request):
     # just giving a products variable to Product database 

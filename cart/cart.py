@@ -6,10 +6,13 @@ class Cart():
         #Get request
         self.request = request
         #Get the current key if it exists
-        cart = self.session.get('session_key')
+        # cart = self.session.get('session_key')
+        cart = self.session.get('cart')
         #If the user is new, no session key create one
-        if 'session_key' not in request.session:
-            cart = self.session['session_key'] = {}
+        # if 'session_key' not in request.session:
+        #     cart = self.session['session_key'] = {}
+        if not cart:
+            cart = self.session['cart'] = {}
 
         # make sure cart is available on all pages of site
         self.cart = cart
@@ -19,7 +22,7 @@ class Cart():
         product_qty = str(quantity)
         #logic
         if product_id in self.cart:
-            pass
+            self.cart[product_id] += product_qty  # Update quantity if already in cart
         else:
             # self.cart[product_id] = {'price': str(product.price)}
             self.cart[product_id] = int(product_qty)
@@ -40,7 +43,7 @@ class Cart():
         product_qty = str(quantity)
         #logic
         if product_id in self.cart:
-            pass
+            self.cart[product_id] += product_qty  # Update quantity if already in cart
         else:
             # self.cart[product_id] = {'price': str(product.price)}
             self.cart[product_id] = int(product_qty)
@@ -54,6 +57,8 @@ class Cart():
             carts = carts.replace("\'","\"")
             # Save carts to profile module
             current_user.update(old_cart=str(carts))
+    def __len__(self):
+        return sum(self.cart.values())  # Return total quantity of items in cart
 
     def cart_total(self):
         # Get product IDs
@@ -72,8 +77,6 @@ class Cart():
                         total = total + (product.price*value)
         return total
 
-    def __len__(self):
-        return len(self.cart)
     
     def get_prods(self):
         product_ids = self.cart.keys()
@@ -120,3 +123,14 @@ class Cart():
             carts = carts.replace("\'","\"")
             # Save carts to profile module
             current_user.update(old_cart=str(carts))
+
+    def clear(self):
+        # self.cart.clear()
+        self.session['cart'] = {}
+        self.session.modified = True
+        self.request.session.save()
+
+        # Clear saved cart for logged in users
+        if self.request.user.is_authenticated:
+            current_user = Profile.objects.filter(user__id=self.request.user.id)
+            current_user.update(old_cart="{}")

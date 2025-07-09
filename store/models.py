@@ -64,6 +64,14 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='product_images/')
+    
+    def __str__(self):
+        return f"{self.product.name} Image"
+
+
 class Order(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -77,3 +85,11 @@ class Order(models.Model):
     def __str__(self):
         return self.product
 
+
+class Review(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    username = models.CharField(max_length=100)
+    review_text = models.TextField()
+    rating = models.IntegerField(default=0)  # Assuming a rating out of 5
+    def __str__(self):
+        return f"{self.username} - {self.rating} stars"

@@ -1,87 +1,208 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container">
-    <br><br>
-    <br><br>
-    <div class="card mb-3">
-        <div class="row g-0">
-          <div class="col-md-4">
-            <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="...">
-          </div>
-          <div class="col-md-8">
-            <div class="card-body">
-                <center>
-              <h5 class="card-title">{{ product.name }}</h5>
-              <p class="card-text">{{ product.description }}</p>
-              {% if product.is_sale %}
-              <div class="text-center">
-                <!-- Product name-->
-                <h5 class="fw-bolder">{{ product.name }}</h5>
-                <!-- Product reviews-->
-                <div class="d-flex justify-content-center small text-warning mb-2">
-                    <div class="bi-star-fill"></div>
-                    <div class="bi-star-fill"></div>
-                    <div class="bi-star-fill"></div>
-                    <div class="bi-star-fill"></div>
-                    <div class="bi-star-fill"></div>
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <!-- Image Gallery - Takes 5 columns on medium+ screens -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <!-- Main Carousel -->
+            <div id="productCarousel" class="carousel slide" data-bs-ride="false" style="max-width: 500px; margin: 0 auto;">
+                <div class="carousel-inner rounded">
+                    <div class="carousel-item active">
+                        <img src="{{ product.image.url }}" class="d-block w-100" alt="{{ product.name }}" style="object-fit: contain; height: 400px;">
+                    </div>
+                    {% for image in images %}
+                    <div class="carousel-item">
+                        <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ product.name }} image {{ forloop.counter }}" style="object-fit: contain; height: 400px;">
+                    </div>
+                    {% endfor %}
                 </div>
-                <!-- Product price-->
-                <strike>
-                  ₹{{ product.price }}
-                </strike>
-                &nbsp;
-                ₹{{ product.sale_price }}
+                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
             </div>
-              {% else %}
-              ₹{{ product.price }}
-              {% endif %}
-              <br>
-              <div class="row justify-content-center">
-                <div class="col-md-2">Quantity:</div>
-                <div class="col-md-2">
-              <select class="form-select" id="qty-cart">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-              </select>
-            </div>
-            </div>
-            <br><br>
-              <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
-              <button type="button" value="{{ product.id }}" class="btn btn-secondary" id="add-cart">Add to cart</button>
-            </center>
-            </div>
-          </div>
         </div>
-      </div>
-<br><br>
-</div>
-<script>
-  // check if button is pressed
-  $(document).on('click', '#add-cart', function(e){
-    e.preventDefault();
-    $.ajax({
-      type: 'POST',
-      url: '{% url "cart_add" %}',
-      data: {
-        product_id: $('#add-cart').val(),
-        product_qty:$('#qty-cart option:selected').text(),
-        csrfmiddlewaretoken: '{{ csrf_token }}',
-        action: 'post',
-      },
-      success: function(json){
-        // console.log(json)
-        document.getElementById("cart_quantity").textContent = json.qty
-        location.reload();
-      },
-      error: function(xhr, errmsg, err){
 
-      },
+        <!-- Product Details - Takes 5 columns on medium+ screens -->
+        <div class="col-lg-5 col-md-6">
+            <div class="product-details">
+              <h2 class="mb-3 fw-bold" style="font-size: 2.5rem; color: #333;">{{ product.name }}</h2>
+                
+                <!-- Price Section -->
+                <div class="mb-4">
+                    {% if product.is_sale %}
+                    <div class="d-flex align-items-center">
+                        <span class="fs-3 fw-bold text-danger">₹{{ product.sale_price }}</span>
+                        <span class="fs-6 text-muted ms-3"><del>₹{{ product.price }}</del></span>
+                        <span class="badge bg-danger ms-2">SALE</span>
+                    </div>
+                    {% else %}
+                    <span class="fs-3 fw-bold">₹{{ product.price }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <p class="text-muted mb-4" style="font-size: 1.1rem;">{{ product.description }}</p>
+                
+                <!-- Quantity Selector -->
+                <div class="mb-4">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label class="col-form-label fw-bold">Quantity:</label>
+                        </div>
+                        <div class="col-auto">
+                            <select class="form-select" id="qty-cart" style="width: 100px;">
+                                {% for i in "123456" %}
+                                <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3">
+                    <button type="button" value="{{ product.id }}" class="btn btn-dark flex-grow-1 py-3" id="add-cart">
+                        <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                    </button>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary flex-grow-1 py-3">
+                        <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-12 mt-5">
+            <h3 class="mb-4">Customer Reviews</h3>
+            {% for review in reviews %}
+                <div class="border p-3 mb-3">
+                    <h5>{{ review.username }} - 
+                        <span class="stars">
+                            {% for i in "12345" %}
+                                <i class="bi bi-star{% if i|add:0 <= review.rating %}-fill{% endif %}"></i>
+                            {% endfor %}
+                        </span>
+                    </h5>
+                    <p>{{ review.review_text }}</p>
+                </div>
+            {% empty %}
+                <p>No reviews yet. Be the first to review this product!</p>
+            {% endfor %}
+        
+            <!-- Review Form -->
+            <h4 class="mt-4">Write a Review</h4>
+            {% if user.is_authenticated %}
+                <form method="post" id="review-form">
+                    {% csrf_token %}
+                    {{ form.review_text }}
+                    <div class="stars" id="star-rating">
+                        <input type="hidden" name="rating" id="rating" value="0">
+                        {% for i in "12345" %}
+                            <i class="bi bi-star" data-value="{{ i }}"></i>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            {% else %}
+                    <p>Please <a href="{% url 'login_user' %}">log in</a> to write a review.</p>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Add CSS for stars -->
+<style>
+    .stars {
+        display: flex;
+        cursor: pointer;
+    }
+    .stars i {
+        font-size: 2rem;
+        color: #ccc; /* Default star color */
+    }
+    .stars i:hover,
+    .stars i:hover ~ i {
+        color: #f39c12; /* Color on hover */
+    }
+    .stars i.bi-star-fill {
+        color: #f39c12; /* Color for filled stars */
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+$(document).ready(function() {
+    $(document).on('click', '#add-cart', function(e){
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart_add" %}',
+            data: {
+                product_id: $('#add-cart').val(),
+                product_qty: $('#qty-cart').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post',
+            },
+            success: function(json){
+                if(json.success) {
+                //Update the cart quantity in the navbar
+                    document.getElementById("cart_quantity").textContent = json.qty;
+                    const cartToast = new bootstrap.Toast(document.getElementById('cartToast'));
+                    cartToast.show();
+                }
+            },
+            error: function(xhr, errmsg, err){
+                console.error(errmsg);
+            },
+        });
     });
-  })
+});
+// Initialize carousel with touch support
+$(document).ready(function(){
+    const carousel = new bootstrap.Carousel('#productCarousel', {
+        touch: true,
+        interval: false // Disable auto-slide
+    });
+});
+
+const stars = document.querySelectorAll('#star-rating i');
+    const ratingInput = document.getElementById('rating');
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const value = star.getAttribute('data-value');
+            ratingInput.value = value; // Set the hidden input value
+            updateStars(value); // Update the star display
+        });
+    });
+    function updateStars(rating) {
+        stars.forEach(star => {
+            if (star.getAttribute('data-value') <= rating) {
+                star.classList.add('bi-star-fill');
+            } else {
+                star.classList.remove('bi-star-fill');
+            }
+        });
+    }
 </script>
+
+<!-- Simple Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="cartToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Product added to cart successfully!
+        </div>
+    </div>
+</div>
+
 {% endblock %}

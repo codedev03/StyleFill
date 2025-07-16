@@ -31,6 +31,13 @@ post_save.connect(create_shipping, sender=User)
 
 # Create Order model
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
+    ]
+
     # Foreign keys
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     full_name = models.CharField(max_length=250)
@@ -46,7 +53,7 @@ class Order(models.Model):
     # NEW FIELDS
     payment_completed = models.BooleanField(default=False)
     payment_id = models.CharField(max_length=100, null=True, blank=True)
-
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
     def __str__(self):
         return f'Order - {str(self.id)}'
 # Auto add shipping date

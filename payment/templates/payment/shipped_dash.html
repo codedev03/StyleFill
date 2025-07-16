@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load tz %}
 {% block content %}
 
 <!-- Dashboard Header -->
@@ -18,6 +19,7 @@
                 <thead class="table-primary">
                     <tr>
                         <th>Order ID</th>
+                        <th>Customer</th>
                         <th>Products</th>
                         <th>Price</th>
                         <th>Customer Email</th>
@@ -33,6 +35,10 @@
                     {% for item in orders %}
                     <tr>
                         <td><a href="{% url 'orders' item.id %}" class="text-decoration-none fw-bold text-primary">#{{ item.id }}</a></td>
+                        <td>
+                            {{ item.user.get_full_name|default:item.user.username }}
+                        </td>
+
                         <td>
                             <ul class="list-unstyled mb-0">
                                 {% for product in item.orderitem_set.all %}
@@ -50,7 +56,7 @@
                         <td>₹{{ item.shipping_cost }}</td>
                         <td style="white-space: pre-wrap;">{{ item.shipping_address }}</td>
 
-                        <td>{{ item.date_shipped|date:"M d, Y H:i" }}</td>
+                        <td>{{ item.date_shipped|localtime|date:"M d, Y H:i" }}</td>
                         <td>
                             <form method="POST" class="d-inline">
                                 {% csrf_token %}

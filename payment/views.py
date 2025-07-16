@@ -2,6 +2,7 @@ import datetime
 import razorpay
 import json
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from cart.cart import Cart
 from payment.forms import ShippingForm
@@ -14,6 +15,14 @@ from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
+
+@login_required
+def track_orders(request):
+    orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
+    for index, order in enumerate(orders, 1):
+        order.user_order_number = index
+    return render(request, 'payment/tracking.html', {'orders': orders})
+
 def orders(request, pk):
     if request.user.is_authenticated and request.user.is_superuser:
         #Get the order

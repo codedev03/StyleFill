@@ -47,8 +47,6 @@ def update_info(request):
         return redirect('home')
 
 
-
-
 def update_password(request):
     if request.user.is_authenticated:
         current_user = request.user

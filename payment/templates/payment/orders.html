@@ -8,7 +8,7 @@
             <div class="col-8">
                 <br><br>
                 <div class="card">
-                    <h5 class="card-header">Order {{ order.id }} - ${{ order.amount_paid }}</h5>
+                    <h5 class="card-header">Order {{ order.id }} - ₹{{ order.amount_paid }}</h5>
                     <div class="card-body">
                         Email : {{ order.email }} <br>
                         {% if order.date_shipped %}
@@ -17,8 +17,9 @@
                         Date Ordered : {{ order.date_ordered }}
                         {% endif %} <br>
                         Full name : {{ order.full_name }} <br>
-                        <pre>{{ order.shipping_address }}
-                        </pre>
+                        <pre>{{ order.shipping_address }}</pre>
+                        <strong>Shipping Method:</strong> {{ order.shipping_method|title }} <br>
+                        <strong>Shipping Cost:</strong> ₹{{ order.shipping_cost }} <br><br>
                         {% for item in items %}
                             {{ item.product }} - {{ item.quantity }} - ${{ item.price }} <br>
                         {% endfor %}

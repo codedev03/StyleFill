@@ -36,10 +36,17 @@ class Order(models.Model):
     full_name = models.CharField(max_length=250)
     email = models.EmailField(max_length=250)
     shipping_address = models.TextField(max_length=15000)
+    shipping_method = models.CharField(max_length=50, default='standard')  # NEW
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # NEW
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     date_ordered = models.DateTimeField(auto_now_add=True)
     shipped = models.BooleanField(default=False)
     date_shipped = models.DateTimeField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    # NEW FIELDS
+    payment_completed = models.BooleanField(default=False)
+    payment_id = models.CharField(max_length=100, null=True, blank=True)
+
     def __str__(self):
         return f'Order - {str(self.id)}'
 # Auto add shipping date

@@ -18,8 +18,13 @@
                 <thead class="table-primary">
                     <tr>
                         <th>Order ID</th>
+                        <th>Products</th>
                         <th>Price</th>
                         <th>Customer Email</th>
+                        <th>Phone Number</th>
+                        <th>Shipping Method</th>
+                        <th>Shipping Cost</th>
+                        <th>Shipping Address</th>
                         <th>Date Shipped</th>
                         <th>Shipping Status</th>
                     </tr>
@@ -28,9 +33,24 @@
                     {% for item in orders %}
                     <tr>
                         <td><a href="{% url 'orders' item.id %}" class="text-decoration-none fw-bold text-primary">#{{ item.id }}</a></td>
+                        <td>
+                            <ul class="list-unstyled mb-0">
+                                {% for product in item.orderitem_set.all %}
+                                <li>🛍️ {{ product.product.name }} <small class="text-muted">(x{{ product.quantity }})</small></li>
+                                {% empty %}
+                                <li><small class="text-danger">No items</small></li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        
                         <td>₹{{ item.amount_paid }}</td>
                         <td>{{ item.email }}</td>
-                        <td>{{ item.date_shipped }}</td>
+                        <td>{{ item.phone_number }}</td>
+                        <td>{{ item.shipping_method|title }}</td>
+                        <td>₹{{ item.shipping_cost }}</td>
+                        <td style="white-space: pre-wrap;">{{ item.shipping_address }}</td>
+
+                        <td>{{ item.date_shipped|date:"M d, Y H:i" }}</td>
                         <td>
                             <form method="POST" class="d-inline">
                                 {% csrf_token %}
@@ -39,6 +59,14 @@
                                 <button type="submit" class="btn btn-outline-danger btn-sm">Mark Unshipped</button>
                             </form>
                         </td>
+                        <td>
+                            <span class="badge bg-success">Shipped</span>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No orders found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -145,7 +145,12 @@
                                 <form method="POST" action="{% url 'billing_info' %}">
                                     {% csrf_token %}
                                     {{ shipping_form.as_p }}
-
+                                    {% if billing_phone %}
+                                        <div class="mb-3">
+                                            <label class="form-label" for="shipping_phone">Phone Number:</label>
+                                            <input type="text" class="form-control"  id="shipping_phone" name="shipping_phone" value="{{ billing_phone }}" required>
+                                        </div>
+                                    {% endif %}
                                     <!-- Shipping Method Selection -->
                                     <div class="mb-3">
                                         <label class="form-label">Select Shipping Method:</label>
@@ -166,6 +171,10 @@
                                     <div id="shipping_cost" class="mb-3">
                                         <strong>Shipping Cost: ₹<span id="shipping_cost_value">0</span></strong>
                                     </div>
+
+
+                                    
+
 
                                     <button type="submit" class="btn btn-secondary">Continue To billing</button>
                                 </form>
@@ -195,6 +204,23 @@
             const cost = selected.getAttribute('data-cost');
             document.getElementById('shipping_cost_value').textContent = cost;
             document.getElementById('shipping_cost_hidden').value = cost;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const radios = document.querySelectorAll('input[name="shipping_method"]');
+        const costSpan = document.getElementById('shipping_cost_value');
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                costSpan.textContent = radio.dataset.cost;
+            });
+        });
+
+        // Set initial cost
+        const checkedRadio = document.querySelector('input[name="shipping_method"]:checked');
+        if (checkedRadio) {
+            costSpan.textContent = checkedRadio.dataset.cost;
         }
     });
 </script>

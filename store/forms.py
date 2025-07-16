@@ -18,10 +18,6 @@ class ProfileForm(forms.ModelForm):
         }
 
 
-
-
-
-
 class UserInfoForm(forms.ModelForm):
     phone = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}), required=True)
     address1 = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Address 1'}), required=True)
@@ -34,9 +30,6 @@ class UserInfoForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ('phone', 'address1', 'address2', 'city', 'state', 'zipcode', 'country',)
-
-
-
 
 class ChangePasswordForm(SetPasswordForm):
     class Meta:
@@ -55,8 +48,6 @@ class ChangePasswordForm(SetPasswordForm):
         self.fields['new_password2'].widget.attrs['placeholder'] = 'Confirm Password'
         self.fields['new_password2'].label = ''
         self.fields['new_password2'].help_text = '<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'
-
-
 
 class UpdateUserForm(UserChangeForm):
     password = None
@@ -87,8 +78,6 @@ class UpdateUserForm(UserChangeForm):
         self.fields['username'].widget.attrs['placeholder'] = 'User  Name'
         self.fields['username'].label = ''
         self.fields['username'].help_text = '<span class="form-text text-muted"><small>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small></span>'
-
-
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(

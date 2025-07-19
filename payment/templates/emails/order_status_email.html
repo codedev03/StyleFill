@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Poppins', cursive;
+            background: #fff0f5;
+            color: #333;
+            padding: 20px;
+        }
+        .email-container {
+            background-color: #ffe4ec;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            margin: auto;
+            border: 2px dashed #ff69b4;
+        }
+        h1 {
+            color: #ff1493;
+            text-align: center;
+        }
+        .order-info {
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            text-align: center;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h1>🌸 Thank you for shopping at KawaiiCorner!</h1>
+        <p>Hi {{ order.full_name }},</p>
+
+        <p>Your order <strong>#{{ order.order_number }}</strong> has been updated to <strong>{{ order.get_status_display }}</strong>.</p>
+
+        <div class="order-info">
+            <p><strong>Total Paid:</strong> ₹{{ order.amount_paid }}</p>
+            <p><strong>Shipping Method:</strong> {{ order.shipping_method }}</p>
+            {% if order.tracking_number %}
+                <p><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+            {% endif %}
+            {% if order.courier_service %}
+                <p><strong>Courier:</strong> {{ order.courier_service }}</p>
+            {% endif %}
+        </div>
+
+        <p>You can always log in to your account to check order progress 💖</p>
+
+        <div class="footer">
+            <p>KawaiiCorner ✨ | <a href="mailto:support@kawaiicorner.shop">support@kawaiicorner.shop</a></p>
+            <p>123 Cute Lane, Tokyo, Japan · +81-123-456-7890</p>
+        </div>
+    </div>
+</body>
+</html>

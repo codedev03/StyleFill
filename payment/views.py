@@ -1,9 +1,13 @@
-import datetime
+from django.utils import timezone
 import razorpay
 import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+#email
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives
 from cart.cart import Cart
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress, Order, OrderItem
@@ -12,9 +16,20 @@ from django.contrib import messages
 from store.models import Product, Profile
 from decimal import Decimal
 from django.conf import settings
+
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
+def send_order_status_email(order):
+    subject = f"KawaiiCorner 🌸 - Order #{order.order_number} Status Update"
+    html_message = render_to_string("emails/order_status_email.html", {"order": order})
+    plain_message = strip_tags(html_message)
+    from_email = "KawaiiCorner <support@kawaiicorner.shop>"
+    recipient_list = [order.email]
+
+    email = EmailMultiAlternatives(subject, plain_message, from_email, recipient_list)
+    email.attach_alternative(html_message, "text/html")
+    email.send()
 
 @login_required
 def track_orders(request):
@@ -57,18 +72,24 @@ def not_shipped_dash(request):
         orders = Order.objects.filter(shipped=False, payment_completed=True)
         logger.info(f"Unshipped paid orders: {[o.id for o in orders]}")
         if request.method == "POST":
-            status = request.POST.get('shipping_status')
-            order_id = request.POST.get('num')
+            SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
+            new_status = request.POST.get('status')
+            order_id = request.POST.get('order_id')
 
             try:
                 order = Order.objects.get(id=order_id, payment_completed=True)
-                now = datetime.datetime.now()
+                order.status = new_status
 
-                if status == "true":
+                if new_status in SHIPPED_STATUSES:
                     order.shipped = True
-                    order.date_shipped = now
-                    order.save()
-                    messages.success(request, f"Order #{order_id} marked as shipped.")
+                    order.date_shipped = timezone.now()
+                else:
+                    order.shipped = False
+                    order.date_shipped = None
+
+                order.save()
+                send_order_status_email(order)
+                messages.success(request, f"Order #{order_id} status updated to {new_status.capitalize()}.")
             except Order.DoesNotExist:
                 messages.error(request, f"Order #{order_id} not found or unpaid.")
 
@@ -84,116 +105,37 @@ def shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
         orders = Order.objects.filter(shipped=True, payment_completed=True)
 
+        status_filter = request.GET.get("status")
+        if status_filter in ["shipped", "out_for_delivery", "delivered"]:
+            orders = orders.filter(status=status_filter)
+
         if request.method == "POST":
-            status = request.POST.get('shipping_status')
-            order_id = request.POST.get('num')
+            SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
+            order_id = request.POST.get('order_id')
+            new_status = request.POST.get('status')
 
             try:
                 order = Order.objects.get(id=order_id, payment_completed=True)
-
-                if status == "false":
+                order.status = new_status
+                if new_status in SHIPPED_STATUSES:
+                    order.shipped = True
+                    order.date_shipped = timezone.now()
+                else:
                     order.shipped = False
                     order.date_shipped = None
-                    order.save()
-                    messages.success(request, f"Order #{order_id} marked as not shipped.")
+                order.save()
+                send_order_status_email(order)
+                messages.success(request, f"Order #{order_id} status updated to {new_status.capitalize()}.")
             except Order.DoesNotExist:
                 messages.error(request, f"Order #{order_id} not found or unpaid.")
 
             return redirect('shipped_dash')
 
-        return render(request, "payment/shipped_dash.html", {"orders": orders})
+        return render(request, "payment/shipped_dash.html", {"orders": orders, "status_filter": status_filter})
     else:
         messages.error(request, "Access Denied!")
         return redirect('home')
 
-
-# def process_order(request):
-#     if request.POST:
-#         cart = Cart(request)
-#         cart_products = cart.get_prods
-#         quantities = cart.get_quants
-#         totals = cart.cart_total()
-#         #Get billing info from the last page
-#         payment_form = PaymentForm(request.POST or None)
-#         #Get shipping session data
-#         my_shipping = request.session.get('my_shipping')
-
-#         # Gather order Info
-#         full_name = my_shipping['shipping_full_name']
-#         email = my_shipping['shipping_email']
-
-#         # Create Shipping address from session info
-#         shipping_address = f"{my_shipping['shipping_address1']}\n{my_shipping['shipping_address2']}\n{my_shipping['shipping_city']}\n{my_shipping['shipping_state']}\n{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
-#         amount_paid = totals
-#         # Create an order
-#         if request.user.is_authenticated:
-#             user = request.user
-#             # create Order
-#             create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-#             create_order.save()
-#             print("ORDER CREATED:", create_order.id)
-#             request.session['latest_order_id'] = create_order.pk
-
-#             # Add order items
-#             #Get the order ID
-#             order_id = create_order.pk
-#             #Get product info
-#             for product in cart_products():
-#                 #get product ID
-#                 product_id = product.id
-#                 #Get product price
-#                 if product.is_sale:
-#                     price = product.sale_price
-#                 else:
-#                     price = product.price
-#                 #get Quantity
-#                 for key, value in quantities().items():
-#                     if int(key) == product.id:
-#                         # create order item
-#                         create_order_item = OrderItem(order_id=order_id, product_id=product_id, user=user, quantity=value, price=price)
-#                         create_order_item.save()
-#             # delete our cart
-#             for key in list(request.session.keys()):
-#                 if key == "session_key":
-#                     del request.session[key]
-
-#             # delete the cart from database(old_cart)
-#             current_user = Profile.objects.filter(user__id=request.user.id)
-#             #Delete shopping cart in database
-#             current_user.update(old_cart="")
-
-#             messages.success(request, "Order placed successfully..")
-#             return redirect('payments_success')
-#         else:
-#             #not logged in 
-#             # create Order
-#             create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-#             create_order.save()
-#             request.session['latest_order_id'] = create_order.pk
-#             # Add order items
-#             #Get the order ID
-#             order_id = create_order.pk
-#             #Get product info
-#             for product in cart_products():
-#                 #get product ID
-#                 product_id = product.id
-#                 #Get product price
-#                 if product.is_sale:
-#                     price = product.sale_price
-#                 else:
-#                     price = product.price
-#                 #get Quantity
-#                 for key, value in quantities().items():
-#                     if int(key) == product.id:
-#                         # create order item
-#                         create_order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=value, price=price)
-#                         create_order_item.save()
-
-#             messages.success(request, "Order placed successfully..")
-#             return redirect('payments_success')
-#     else:
-#         messages.success(request, "Access Denied")
-#         return redirect('home')
 
 def create_order(request):
     if request.method == 'POST':
@@ -252,8 +194,6 @@ def billing_info(request):
         email = request.POST.get('shipping_email')
         shipping_address = f"{request.POST.get('shipping_address1')}\n{request.POST.get('shipping_address2')}\n{request.POST.get('shipping_city')}\n{request.POST.get('shipping_state')}\n{request.POST.get('shipping_zipcode')}\n{request.POST.get('shipping_country')}"
         amount_paid = total_amount
-
-        
 
         # Store essential info in session
         request.session['shipping_info'] = my_shipping

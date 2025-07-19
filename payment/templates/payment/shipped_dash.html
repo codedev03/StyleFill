@@ -10,6 +10,22 @@
     </div>
 </section>
 
+<!-- Status Filter Buttons -->
+<a href="{% url 'shipped_dash' %}?status=shipped"
+   class="btn btn-sm me-2 {% if status_filter == 'shipped' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+   Shipped
+</a>
+<a href="{% url 'shipped_dash' %}?status=out_for_delivery"
+   class="btn btn-sm me-2 {% if status_filter == 'out_for_delivery' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+   Out for Delivery
+</a>
+<a href="{% url 'shipped_dash' %}?status=delivered"
+   class="btn btn-sm {% if status_filter == 'delivered' %}btn-success{% else %}btn-outline-success{% endif %}">
+   Delivered
+</a>
+
+
+
 <!-- Shipped Items Table -->
 <div class="container my-5">
     <!-- Use the .card container to apply the card styling from CSS -->
@@ -58,11 +74,15 @@
 
                         <td>{{ item.date_shipped|localtime|date:"M d, Y H:i" }}</td>
                         <td>
-                            <form method="POST" class="d-inline">
+                            <!-- Inside your <td> for status column in shipped_dash.html -->
+                            <form method="POST" class="d-flex align-items-center">
                                 {% csrf_token %}
-                                <input type="hidden" name="shipping_status" value="false">
-                                <input type="hidden" name="num" value="{{ item.id }}">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Mark Unshipped</button>
+                                <input type="hidden" name="order_id" value="{{ item.id }}">
+                                <select name="status" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                                    {% for value, label in item.STATUS_CHOICES %}
+                                        <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </form>
                         </td>
                         <td>

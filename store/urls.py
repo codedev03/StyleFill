@@ -14,4 +14,5 @@ urlpatterns = [
     path('category/<str:cat>/', views.category, name='category'),
     path('category_summary/', views.category_summary, name='category_summary'),
     path('search/', views.search, name='search'),
+    path('delete-account/', views.delete_account, name='delete_account'),
 ]

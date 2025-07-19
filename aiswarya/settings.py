@@ -164,9 +164,21 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # or console/email service
+
+# Example for Gmail SMTP
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nazreenkmmmca@gmail.com'
+EMAIL_HOST_PASSWORD = 'znkd qnom narh hexu'
+
+DEFAULT_FROM_EMAIL = 'KawaiiCorner <support@kawaiicorner.shop>'
+
 # settings.py
 RAZORPAY_KEY_ID = 'rzp_test_BPXPob227YrMYQ'  # Replace with your actual Razorpay test key ID
 RAZORPAY_KEY_SECRET = 'uAFvStGyR5HVF73EVuqp4UtQ'  # Replace with your actual Razorpay test key secret
+
 
 
 # Default primary key field type

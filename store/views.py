@@ -7,11 +7,26 @@ from django.contrib.auth.forms import UserCreationForm
 from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm, ReviewForm
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
+from django.views.decorators.csrf import csrf_protect
 from django import forms
 from django.db.models import Q
 import json
 from cart.cart import Cart
 # Create your views here.
+@csrf_protect
+def delete_account(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            user = request.user
+            logout(request)  # logout before deleting
+            user.delete()  # deletes user and all related data via on_delete=CASCADE
+            messages.success(request, "Your account and all associated data have been permanently deleted.")
+            return redirect('home')
+        return render(request, "confirm_delete_account.html")
+    else:
+        messages.error(request, "You must be logged in to delete your account.")
+        return redirect('home')
+
 def search(request):
     # Determine if user is filled out the form
     if request.method == "POST":
@@ -186,7 +201,7 @@ def login_user(request):
             return redirect('home')
         else:
             messages.error(request, "There is an error, please try again..")
-            return redirect('login')
+            return redirect('login_user')
     else:
         return render(request, 'login.html', {})
 

@@ -36,6 +36,15 @@
                         Change Password 🛠️
                     </a>
                 </div>
+                <br>
+                <hr>
+                <hr>
+                <form action="{% url 'delete_account' %}" method="GET">
+                    <button class="btn btn-outline-danger mt-3" type="submit">
+                        🗑️ Delete My Account
+                    </button>
+                </form>
+
             </div>
         </div>
     </div>

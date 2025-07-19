@@ -1,6 +1,42 @@
 {% extends 'base.html' %}
 {% load tz %}
+{% load static %}
 {% block content %}
+<style>
+    .kawaii-header h1 {
+        font-family: 'Comic Sans MS', 'Poppins', cursive;
+    }
+    
+    .kawaii-header img {
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .kawaii-header img:hover {
+        transform: scale(1.1) rotate(3deg);
+    }
+    
+    @media (max-width: 768px) {
+        .kawaii-header h1 {
+            font-size: 1.8rem;
+        }
+    
+        .kawaii-header p {
+            font-size: 1rem;
+        }
+    
+        .kawaii-header img {
+            height: 60px;
+        }
+    }
+    </style>
+
+<section class="kawaii-header py-5 text-center text-white" style="background: linear-gradient(135deg, #ff9ebc 0%, #ffb6c1 100%);">
+    <div class="container">
+        <h1 class="display-5 fw-bold">🌸 Track Your Orders</h1>
+        <p class="lead">Your cute packages are on their way to you!</p>
+        <img src="{% static 'assets/elephantdeliveryman.png' %}" alt="Cute Delivery" style="height: 150px;" class="mt-3 d-inline-block">
+    </div>
+</section>
 <div class="container mt-5">
     <h2 class="mb-4">My Orders</h2>
 

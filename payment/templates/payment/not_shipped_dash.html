@@ -59,11 +59,15 @@
 
                         <td>{{ item.date_ordered|localtime|date:"M d, Y H:i" }}</td>
                         <td>
-                            <form method="POST" class="d-inline">
+                            <!-- Inside your <td> for status column in shipped_dash.html -->
+                            <form method="POST" class="d-flex align-items-center">
                                 {% csrf_token %}
-                                <input type="hidden" name="shipping_status" value="true">
-                                <input type="hidden" name="num" value="{{ item.id }}">
-                                <button type="submit" class="btn btn-outline-success btn-sm">Mark Shipped</button>
+                                <input type="hidden" name="order_id" value="{{ item.id }}">
+                                <select name="status" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                                    {% for value, label in item.STATUS_CHOICES %}
+                                        <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
                             </form>
                         </td>
                     </tr>

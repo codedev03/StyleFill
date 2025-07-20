@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load tz %}
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold" style="font-family: 'Comic Sans MS', cursive; font-size: 2rem;">
+            (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ Welcome to the Admin Dashboard! ✧ﾟ･: *ヽ(◕ヮ◕ヽ)
+        </h2>
+        <p class="text-primary fw-semibold mb-1" style="font-size: 1.1rem;">
+            {{ greeting }}
+        </p>
+        <p class="text-muted small">
+            🕒 {{ now|date:"l, M d, Y - h:i A" }}
+        </p>
+    </div>
+    
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Total Customers</h5>
+                <h2 class="text-primary">{{ customer_count }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Total Orders</h5>
+                <h2 class="text-success">{{ order_count }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Delivered Orders</h5>
+                <h2 class="text-info">{{ completed_orders }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Pending Orders</h5>
+                <h2 class="text-warning">{{ pending_orders }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Feedback Count</h5>
+                <h2 class="text-secondary">{{ feedback_count }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow text-center p-3">
+                <h5>Average Rating</h5>
+                <h2 class="text-danger">{{ average_rating }}/5 ⭐</h2>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card shadow text-center p-4">
+                <h5>Total Revenue Collected</h5>
+                <h2 class="text-success">₹{{ total_revenue }}</h2>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

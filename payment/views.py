@@ -2,7 +2,7 @@ from django.utils import timezone
 import razorpay
 import json
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 #email
 from django.template.loader import render_to_string
@@ -13,18 +13,56 @@ from payment.forms import ShippingForm
 from payment.models import ShippingAddress, Order, OrderItem
 from django.contrib.auth.models import User
 from django.contrib import messages
-from store.models import Product, Profile
+from store.models import Product, Profile, Review
+from django.db.models import Avg, Count, Sum
 from decimal import Decimal
 from django.conf import settings
 
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
+def get_greeting():
+    now = timezone.localtime()
+    hour = now.hour
+    if 5 <= hour < 12:
+        return "🌞 Good Morning"
+    elif 12 <= hour < 17:
+        return "☀️ Good Afternoon"
+    else:
+        return "🌙 Good Evening"
+
+@user_passes_test(lambda u: u.is_superuser)
+@login_required
+def admin_dashboard(request):
+    customer_count = User.objects.filter(is_superuser=False).count()
+    order_count = Order.objects.count()
+    completed_orders = Order.objects.filter(status='delivered').count()
+    pending_orders = Order.objects.exclude(status='delivered').count()
+
+    feedback_count = Review.objects.count()
+    average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
+    total_revenue = Order.objects.aggregate(total=Sum('amount_paid'))['total']
+
+    context = {
+        "customer_count": customer_count,
+        "order_count": order_count,
+        "completed_orders": completed_orders,
+        "pending_orders": pending_orders,
+        "feedback_count": feedback_count,
+        "average_rating": round(average_rating or 0, 1),
+        "total_revenue": total_revenue or 0,
+        "now": timezone.now(),
+        "greeting": get_greeting(),
+    }
+
+    return render(request, "admin_custom/dashboard.html", context)
+
+
 def send_order_status_email(order):
-    subject = f"KawaiiCorner 🌸 - Order #{order.order_number} Status Update"
+    subject = f"StyleFill 🌸 - Order #{order.order_number} Status Update"
     html_message = render_to_string("emails/order_status_email.html", {"order": order})
     plain_message = strip_tags(html_message)
-    from_email = "KawaiiCorner <support@kawaiicorner.shop>"
+    from_email = "StyleFill <support@stylefill.shop>"
     recipient_list = [order.email]
 
     email = EmailMultiAlternatives(subject, plain_message, from_email, recipient_list)
@@ -50,7 +88,7 @@ def orders(request, pk):
 
         if request.method == "POST":
             status = request.POST.get('shipping_status', 'false')
-            now = datetime.datetime.now()
+            now = timezone.now()
 
             if status == "true":
                 order.shipped = True

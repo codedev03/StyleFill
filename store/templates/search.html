@@ -1,14 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <!-- Header-->
 <header class="kawaii-header">
-    <div class="container px-4 px-lg-5 my-5">
+    <div class="container px-4 px-lg-5 my-5 position-relative">
         <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">Search Products...</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Find what you're looking for in StyleFill /(:)\🪄</p>
+            <h1 class="display-4 fw-bolder">Search Products...🔍</h1>
+            <p class="lead fw-normal text-black-50 mb-0">Find what you're looking for in StyleFill /(:)\🪄</p>
+        </div>
+
+        <!-- Cutesearch: floating animation -->
+        <img src="{% static 'assets/searchcute.png' %}" alt="Cute Search" class="cutesearch-img">
+
+        <!-- Devicesearch: sparkles effect -->
+        <div class="devicesearch-wrapper">
+            <img src="{% static 'assets/devicesearch.png' %}" alt="Device Search" class="devicesearch-img">
+            <div class="sparkle sparkle-1"></div>
+            <div class="sparkle sparkle-2"></div>
+            <div class="sparkle sparkle-3"></div>
         </div>
     </div>
 </header>
+<style>
+    /* Float animation for cutesearch */
+    .cutesearch-img {
+        position: absolute;
+        bottom: -50px;
+        left: 10%;
+        width: 100px;
+        animation: floatCute 4s ease-in-out infinite;
+        z-index: 1;
+    }
+
+    @keyframes floatCute {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    /* Sparkle effect for devicesearch */
+    .devicesearch-wrapper {
+        position: absolute;
+        bottom: -100px;
+        right: 10%;
+        width: 120px;
+        height: 120px;
+        z-index: 1;
+    }
+
+    .devicesearch-img {
+        width: 100%;
+        height: auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sparkle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.8;
+        animation: sparkleBlink 2s infinite ease-in-out alternate;
+        box-shadow: 0 0 8px 3px white;
+        z-index: 0;
+    }
+
+    .sparkle-1 { top: 0; left: 0; animation-delay: 0s; }
+    .sparkle-2 { top: 10px; right: 0; animation-delay: 1s; }
+    .sparkle-3 { bottom: 0; left: 40px; animation-delay: 0.5s; }
+
+    @keyframes sparkleBlink {
+        0% { transform: scale(1); opacity: 0.6; }
+        100% { transform: scale(1.5); opacity: 1; }
+    }
+
+</style>
 
 <div class="container my-5">
     <div class="row justify-content-center">

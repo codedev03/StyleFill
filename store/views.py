@@ -221,13 +221,13 @@ def register_user(request):
             # Create a Profile for the new user
             # Profile.objects.create(user=user)  # Automatically create a profile
             # Use get_or_create to avoid IntegrityError
-            profile, created = Profile.objects.get_or_create(user=user)
+            # profile, created = Profile.objects.get_or_create(user=user)
             
             # Optionally, you can check if the profile was created
-            if created:
-                messages.success(request, "Profile created successfully!")
-            else:
-                messages.warning(request, "Profile already exists for this user.")
+            # if created:
+                # messages.success(request, "Profile created successfully!")
+            # else:
+            #     messages.warning(request, "Profile already exists for this user.")
             
             # log in user
             user = authenticate(username=username, password=password)
@@ -235,8 +235,7 @@ def register_user(request):
             messages.success(request, ("Username Created - Please Fill out your User informations below..>>>>> "))
             return redirect('update_info')
         else:
-            print(form.errors)
-            messages.success(request, ("Whoops..There was a problem Registering, please try again!!"))
+            messages.error(request, ("Whoops..There was a problem Registering, please try again!!"))
             return render(request,'register.html', {'form': form})
 
     else:

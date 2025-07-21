@@ -173,7 +173,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'nazreenkmmmca@gmail.com'
 EMAIL_HOST_PASSWORD = 'znkd qnom narh hexu'
 
-DEFAULT_FROM_EMAIL = 'KawaiiCorner <support@kawaiicorner.shop>'
+DEFAULT_FROM_EMAIL = 'StyleFill <support@stylefill.shop>'
 
 # settings.py
 RAZORPAY_KEY_ID = 'rzp_test_BPXPob227YrMYQ'  # Replace with your actual Razorpay test key ID

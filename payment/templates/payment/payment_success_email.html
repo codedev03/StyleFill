@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>StyleFill - Order Confirmation</title>
+</head>
+<body style="font-family: 'Poppins', Arial, sans-serif; padding: 30px; background-color: #fff6f9; color: #333;">
+    <div style="max-width: 700px; margin: auto; border: 3px dashed #ffa07a; padding: 20px; border-radius: 15px; background-color: #fffafc;">
+        
+        <h1 style="text-align: center; color: #ff69b4; font-family: 'Pacifico', cursive; font-size: 36px; margin-bottom: 5px;">
+            StyleFill 🛍️
+        </h1>
+        <p style="text-align: center; font-size: 16px; color: #999; margin-top: 0;">
+            Your Kawaii Order Confirmation
+        </p>
+
+        <h2 style="color: #ff6f61;">Hi {{ order.full_name }},</h2>
+        <p style="font-size: 16px;">Thank you for shopping with us! Here's your order summary:</p>
+
+        <!-- Responsive Table Wrapper -->
+        <div class="table-responsive" style="border: 2px dotted #f08080; border-radius: 10px; padding: 10px; overflow-x: auto;">
+            <table class="table table-bordered" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                <thead>
+                    <tr style="background-color: #ffe4e1;">
+                        <th style="padding: 10px;">Product</th>
+                        <th style="padding: 10px;">Image</th>
+                        <th style="padding: 10px;">Price</th>
+                        <th style="padding: 10px;">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr style="text-align: center;">
+                        <td style="padding: 10px;">{{ item.product_title }}</td>
+                        <td style="padding: 10px;">
+                            {% if item.image_cid %}
+                                <img src="cid:{{ item.image_cid }}" alt="{{ item.product_title }}"
+                                    style="border: 3px solid orange; border-radius: 12px; object-fit: cover; height: 80px; width: 80px;">
+                            {% else %}
+                                <span style="color: gray;">No Image</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 10px;">₹{{ item.price }}</td>
+                        <td style="padding: 10px;">{{ item.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <h3 style="margin-top: 30px; color: #ff4500;">Total Paid: ₹{{ order.amount_paid }}</h3>
+
+        <p style="margin-top: 20px;">We’ll ship your order soon. ✨ Thank you for supporting our cute little shop!</p>
+        <p style="margin-top: 20px; font-size: 14px; color: #777;">
+            You can view your order processing status anytime at <a href="https://stylefill.com" style="color: #ff69b4;">stylefill.com</a> 💻
+        </p>
+
+        <p style="margin-top: 10px;">With lots of love, <br><strong>StyleFill Team 💖</strong></p>
+
+    </div>
+</body>
+</html>

@@ -7,7 +7,9 @@ from django.http import JsonResponse
 #email
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail, EmailMessage
+from django.core.files.images import get_image_dimensions
+from email.mime.image import MIMEImage
 from cart.cart import Cart
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress, Order, OrderItem
@@ -17,7 +19,7 @@ from store.models import Product, Profile, Review
 from django.db.models import Avg, Count, Sum
 from decimal import Decimal
 from django.conf import settings
-
+import os
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
@@ -327,6 +329,7 @@ def payments_success(request):
     cart = Cart(request)
     cart_products = cart.get_prods
     quantities = cart.get_quants
+    # After saving all order items
     for product in cart_products():
         price = product.sale_price if product.is_sale else product.price
         quantity = quantities().get(str(product.id))
@@ -335,14 +338,48 @@ def payments_success(request):
             if request.user.is_authenticated:
                 order_item.user = request.user
             order_item.save()
+    # ✅ Send email to customer
+    order_items = OrderItem.objects.filter(order=order)
+
+    # Create a mapping of product ID to Content-ID
+    cid_map = {}
+
+    subject = 'Your Order Confirmation - Thank You!'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = [order.email]
+    email = EmailMultiAlternatives(subject, '', from_email, to_email)
+
+
+    # Embed images
+    for item in order_items:
+        item.product_title = item.product.name
+        image_path = item.product.image.path
+        if os.path.exists(image_path):
+            with open(image_path, 'rb') as img_file:
+                mime_img = MIMEImage(img_file.read())
+                cid = f"product_image_{item.id}"
+                mime_img.add_header('Content-ID', f"<{cid}>")
+                mime_img.add_header('Content-Disposition', 'inline', filename=os.path.basename(image_path))
+                mime_img.add_header('X-Attachment-Id', cid)
+                email.attach(mime_img)
+                item.image_cid = cid
+        else:
+            item.image_cid = None
+    
+    # Now re-render HTML with updated cid_map
+    html_content = render_to_string('payment/payment_success_email.html', {
+        'order': order,
+        'order_items': order_items,
+        'cid_map': cid_map,
+    })
+    email.attach_alternative(html_content, "text/html")
+    email.content_subtype = 'related'
+    email.send()
     # Clear cart and session
     cart = Cart(request)
     cart.clear()
-    request.session.pop('latest_order_id', None)
-    # Clean up session
-    request.session.pop('shipping_info', None)
-    request.session.pop('total_amount', None)
-    request.session.pop('razorpay_order_id', None)
+    for key in ['latest_order_id', 'shipping_info', 'total_amount', 'razorpay_order_id']:
+        request.session.pop(key, None)
     messages.success(request, "Your order was successful! 🎉 Cart is now cleared.")
     return render(request, "payment/payment_success.html", {"payment_id": payment_id})
 

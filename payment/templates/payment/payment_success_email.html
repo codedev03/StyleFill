@@ -17,34 +17,34 @@
         <h2 style="color: #ff6f61;">Hi {{ order.full_name }},</h2>
         <p style="font-size: 16px;">Thank you for shopping with us! Here's your order summary:</p>
 
-        <!-- Responsive Table Wrapper -->
-        <div class="table-responsive" style="border: 2px dotted #f08080; border-radius: 10px; padding: 10px; overflow-x: auto;">
-            <table class="table table-bordered" style="width: 100%; border-collapse: collapse; min-width: 600px;">
-                <thead>
-                    <tr style="background-color: #ffe4e1;">
-                        <th style="padding: 10px;">Product</th>
-                        <th style="padding: 10px;">Image</th>
-                        <th style="padding: 10px;">Price</th>
-                        <th style="padding: 10px;">Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in order_items %}
-                    <tr style="text-align: center;">
-                        <td style="padding: 10px;">{{ item.product_title }}</td>
-                        <td style="padding: 10px;">
-                            {% if item.image_cid %}
-                                <img src="cid:{{ item.image_cid }}" alt="{{ item.product_title }}"
-                                    style="border: 3px solid orange; border-radius: 12px; object-fit: cover; height: 80px; width: 80px;">
-                            {% else %}
-                                <span style="color: gray;">No Image</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 10px;">₹{{ item.price }}</td>
-                        <td style="padding: 10px;">{{ item.quantity }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+        <!-- Responsive Table Wrapper for Email -->
+        <div style="border: 2px dotted #f08080; border-radius: 10px; padding: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 100%; table-layout: fixed;">
+            <thead>
+                <tr style="background-color: #ffe4e1;">
+                <th style="padding: 10px; border: 1px solid #ffb6c1; font-size: 14px;">Product</th>
+                <th style="padding: 10px; border: 1px solid #ffb6c1; font-size: 14px;">Image</th>
+                <th style="padding: 10px; border: 1px solid #ffb6c1; font-size: 14px;">Price</th>
+                <th style="padding: 10px; border: 1px solid #ffb6c1; font-size: 14px;">Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr style="text-align: center;">
+                <td style="padding: 10px; border: 1px solid #ffe4e1;">{{ item.product_title }}</td>
+                <td style="padding: 10px; border: 1px solid #ffe4e1;">
+                    {% if item.image_cid %}
+                    <img src="cid:{{ item.image_cid }}" alt="{{ item.product_title }}"
+                    style="border: 2px solid orange; border-radius: 10px; object-fit: cover; height: 70px; width: 70px;">
+                    {% else %}
+                    <span style="color: gray;">No Image</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px; border: 1px solid #ffe4e1;">₹{{ item.price }}</td>
+                <td style="padding: 10px; border: 1px solid #ffe4e1;">{{ item.quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
             </table>
         </div>
 

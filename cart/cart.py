@@ -38,15 +38,19 @@ class Cart():
             current_user.update(old_cart=str(carts))
 
 
-    def add(self, product, quantity):
+    def add(self, product, quantity=1, go_naked=False):
         product_id = str(product.id)
-        product_qty = str(quantity)
+        product_qty = int(quantity)
         #logic
         if product_id in self.cart:
-            self.cart[product_id] += product_qty  # Update quantity if already in cart
+            self.cart[product_id]['quantity'] += product_qty  # Update quantity if already in cart
+            self.cart[product_id]['go_naked'] = go_naked
         else:
             # self.cart[product_id] = {'price': str(product.price)}
-            self.cart[product_id] = int(product_qty)
+            self.cart[product_id] = {
+            'quantity': product_qty,
+            'go_naked': go_naked
+        }
         self.session.modified = True
         #Deal with logged in user
         if self.request.user.is_authenticated:
@@ -58,26 +62,24 @@ class Cart():
             # Save carts to profile module
             current_user.update(old_cart=str(carts))
     def __len__(self):
-        return sum(self.cart.values())  # Return total quantity of items in cart
+        return sum(item['quantity'] for item in self.cart.values())# Return total quantity of items in cart
 
     def cart_total(self):
-        # Get product IDs
         product_ids = self.cart.keys()
-        # lookup those keys in our products database
         products = Product.objects.filter(id__in=product_ids)
-        quantities = self.cart
         total = 0
-        for key, value in quantities.items():
-            key = int(key)
-            for product in products:
-                if product.id == key:
-                    if product.is_sale:
-                        total = total + (product.sale_price*value)
-                    else:
-                        total = total + (product.price*value)
+
+        for product in products:
+            item = self.cart.get(str(product.id), {})
+            quantity = item.get('quantity', 0)
+            if product.is_sale:
+                total += product.sale_price * quantity
+            else:
+                total += product.price * quantity
+
         return total
 
-    
+
     def get_prods(self):
         product_ids = self.cart.keys()
         products = Product.objects.filter(id__in=product_ids)

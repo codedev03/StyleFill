@@ -111,6 +111,10 @@ def not_shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
         orders = Order.objects.filter(shipped=False, payment_completed=True)
         logger.info(f"Unshipped paid orders: {[o.id for o in orders]}")
+        # ✅ Add this block to calculate `has_go_naked` per order
+        for order in orders:
+            order.has_go_naked = any(item.go_naked for item in order.orderitem_set.all())
+        
         if request.method == "POST":
             SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
             new_status = request.POST.get('status')
@@ -144,11 +148,14 @@ def not_shipped_dash(request):
 def shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
         orders = Order.objects.filter(shipped=True, payment_completed=True)
-
         status_filter = request.GET.get("status")
         if status_filter in ["shipped", "out_for_delivery", "delivered"]:
             orders = orders.filter(status=status_filter)
 
+        for order in orders:
+            order.has_go_naked = any(item.go_naked for item in order.orderitem_set.all())
+        for order in orders:
+            print(f"Order #{order.id} Go Naked: {order.has_go_naked}")
         if request.method == "POST":
             SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
             order_id = request.POST.get('order_id')
@@ -299,45 +306,43 @@ def payments_success(request):
         return redirect('home')
 
     # Create Order
+    order_data = {
+        "full_name": shipping_info['shipping_full_name'],
+        "email": shipping_info['shipping_email'],
+        "shipping_address": f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
+        "phone_number": shipping_info.get('shipping_phone'),
+        "shipping_cost": Decimal(shipping_info.get('cost', '0')),
+        "shipping_method": shipping_info.get('method', ''),
+        "amount_paid": total_amount,
+        "payment_completed": True,
+        "payment_id": payment_id
+    }
     if request.user.is_authenticated:
-        user = request.user
-        order = Order.objects.create(
-            user=user,
-            full_name=shipping_info['shipping_full_name'],
-            email=shipping_info['shipping_email'],
-            shipping_address=f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
-            phone_number=shipping_info.get('shipping_phone'),
-            shipping_cost=Decimal(shipping_info.get('cost', '0')),
-            shipping_method=shipping_info.get('method', ''),
-            amount_paid=total_amount,
-            payment_completed=True,
-            payment_id=payment_id
-        )
-    else:
-        order = Order.objects.create(
-            full_name=shipping_info['shipping_full_name'],
-            email=shipping_info['shipping_email'],
-            shipping_address=f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
-            phone_number=shipping_info.get('shipping_phone'),
-            shipping_cost=Decimal(shipping_info.get('cost', '0')),
-            shipping_method=shipping_info.get('method', ''),
-            amount_paid=total_amount,
-            payment_completed=True,
-            payment_id=payment_id
-        )
+        order_data['user'] = request.user
+
+    order = Order.objects.create(**order_data)
     # Create OrderItems
     cart = Cart(request)
     cart_products = cart.get_prods
     quantities = cart.get_quants
     # After saving all order items
     for product in cart_products():
+        item_data = quantities().get(str(product.id), {'quantity': 1, 'go_naked': False})
+        quantity = item_data['quantity']
+        go_naked = item_data.get('go_naked', False)
         price = product.sale_price if product.is_sale else product.price
-        quantity = quantities().get(str(product.id))
-        if quantity:
-            order_item = OrderItem(order=order, product=product, quantity=quantity, price=price)
-            if request.user.is_authenticated:
-                order_item.user = request.user
-            order_item.save()
+        order_item = OrderItem(
+            order=order,
+            product=product,
+            quantity=quantity,
+            price=price,
+            go_naked=go_naked  # ✅ This assumes your model has this field
+        )
+        
+        
+        if request.user.is_authenticated:
+            order_item.user = request.user
+        order_item.save()
     # ✅ Send email to customer
     order_items = OrderItem.objects.filter(order=order)
 

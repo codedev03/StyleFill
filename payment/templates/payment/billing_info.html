@@ -86,7 +86,10 @@
                                     Quantity:
                                     {% for key, value in quantities.items %}
                                         {% if key == product.id|slugify %}
-                                            {{ value }}  <!-- Set the selected value -->
+                                            <strong>{{ value.quantity }}</strong> 
+                                            {% if value.go_naked %}
+                                                <span class="badge bg-warning text-dark ms-2">Go Naked 🌳🌏</span>
+                                            {% endif %}
                                         {% endif %}
                                     {% endfor %}
                                     </small>

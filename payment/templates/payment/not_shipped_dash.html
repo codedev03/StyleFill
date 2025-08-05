@@ -27,6 +27,7 @@
                         <th>Shipping Method</th>
                         <th>Shipping Cost</th>
                         <th>Shipping Address</th>
+                        <th>Go Naked</th>
                         <th>Date Ordered</th>
                         <th>Shipping Status</th>
                     </tr>
@@ -56,6 +57,14 @@
                         <td>{{ item.shipping_method|title }}</td>
                         <td>₹{{ item.shipping_cost }}</td>
                         <td style="white-space: pre-wrap;">{{ item.shipping_address }}</td>
+                        <!-- Check if any product in the order has go_naked -->
+                        <td>
+                            {% if item.has_go_naked %}
+                                ✅ Yes<br><small class="text-success">Eco-friendly 🌿</small>
+                            {% else %}
+                                ❌ No
+                            {% endif %}
+                        </td>
 
                         <td>{{ item.date_ordered|localtime|date:"M d, Y H:i" }}</td>
                         <td>

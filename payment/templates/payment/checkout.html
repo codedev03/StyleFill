@@ -110,7 +110,7 @@
                     <div class="col-md-6 offset-md-3">
                         <div class="card">
                             <div class="card-header">
-                              Order Summary
+                                Order Summary
                             </div>
                             <div class="card-body">
                                 {% for product in cart_products %}
@@ -125,7 +125,11 @@
                                     Quantity:
                                     {% for key, value in quantities.items %}
                                         {% if key == product.id|slugify %}
-                                            {{ value }}  <!-- Set the selected value -->
+                                            
+                                            <strong>{{ value.quantity }}</strong> 
+                                            {% if value.go_naked %}
+                                                <span class="badge bg-warning text-dark ms-2">Go Naked 🌳🌏</span>
+                                            {% endif %}
                                         {% endif %}
                                     {% endfor %}
                                     </small>
@@ -135,11 +139,11 @@
                                 <br><br>
                                 <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update Items</a>
                             </div>
-                          </div>
-                          <br>
-                          <div class="card">
+                        </div>
+                        <br>
+                        <div class="card">
                             <div class="card-header">
-                              Shipping Info
+                                Shipping Info
                             </div>
                             <div class="card-body">
                                 <form method="POST" action="{% url 'billing_info' %}">
@@ -171,10 +175,6 @@
                                     <div id="shipping_cost" class="mb-3">
                                         <strong>Shipping Cost: ₹<span id="shipping_cost_value">0</span></strong>
                                     </div>
-
-
-                                    
-
 
                                     <button type="submit" class="btn btn-secondary">Continue To billing</button>
                                 </form>

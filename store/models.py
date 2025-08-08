@@ -93,3 +93,10 @@ class Review(models.Model):
     rating = models.IntegerField(default=0)  # Assuming a rating out of 5
     def __str__(self):
         return f"{self.username} - {self.rating} stars"
+    
+class NewsletterSubscriber(models.Model):
+    email = models.EmailField(unique=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

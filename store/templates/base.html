@@ -37,7 +37,28 @@
         <!-- Footer-->
         <footer class="kawaii-footer">
             <div class="container text-center">
-                <p class="footer-text mb-1">&copy; 2024 StyleFill.STORE — All rights reserved 🌸</p>
+                <!-- Newsletter Section -->
+                <form action="{% url 'subscribe_newsletter' %}" method="POST" class="row g-2 justify-content-center mb-3">
+                    {% csrf_token %}
+                    <div class="col-12 col-md-6">
+                        <input type="email" name="email" required class="form-control w-100" placeholder="Get cute updates 💌">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-light">Subscribe</button>
+                    </div>
+                </form>
+
+                <!-- Unsubscribe Section -->
+                <form action="{% url 'unsubscribe_newsletter' %}" method="POST" class="row g-2 justify-content-center">
+                    {% csrf_token %}
+                    <div class="col-12 col-md-6">
+                        <input type="email" name="email" required class="form-control w-100" placeholder="Want to unsubscribe? Enter your email 📴">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-secondary">Unsubscribe</button>
+                    </div>
+                </form>
+                <p class="footer-text mt-4 mb-1">&copy; 2024 StyleFill.STORE — All rights reserved 🌸</p>
                 <p class="footer-text">Contact us: <a href="mailto:stylefill.store@gmail.com" class="footer-link">stylefill.store@gmail.com</a></p>
             </div>
         </footer>

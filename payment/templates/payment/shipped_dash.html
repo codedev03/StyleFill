@@ -31,6 +31,15 @@
     <!-- Use the .card container to apply the card styling from CSS -->
     <div class="card shadow-lg p-4">
         <div class="table-responsive">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            <form method="post" action="{% url 'delete_delivered_orders' %}" onsubmit="return confirm('Are you sure you want to delete all delivered orders?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger mb-3">🗑️ Delete All Delivered Orders</button>
+            </form>
             <table class="table table-hover align-middle">
                 <thead class="table-primary">
                     <tr>

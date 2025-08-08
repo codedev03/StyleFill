@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Product, Category, Profile, ProductImage, Review
+from .models import Product, Category, Profile, ProductImage, Review, NewsletterSubscriber
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User 
@@ -7,6 +7,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm, ReviewForm
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
+from experiences.models import Experience
 from django.views.decorators.csrf import csrf_protect
 from django import forms
 from django.db.models import Q
@@ -26,6 +27,28 @@ def delete_account(request):
     else:
         messages.error(request, "You must be logged in to delete your account.")
         return redirect('home')
+
+def subscribe_newsletter(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            if not NewsletterSubscriber.objects.filter(email=email).exists():
+                NewsletterSubscriber.objects.create(email=email)
+                messages.success(request, "You've subscribed to our newsletter 💌")
+            else:
+                messages.info(request, "You're already subscribed.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+def unsubscribe_newsletter(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            if NewsletterSubscriber.objects.filter(email=email).exists():
+                NewsletterSubscriber.objects.filter(email=email).delete()
+                messages.success(request, "You've been unsubscribed from our newsletter 📴")
+            else:
+                messages.info(request, "This email is not subscribed.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def search(request):
     # Determine if user is filled out the form
@@ -136,8 +159,9 @@ def product(request, pk):
 
 def home(request):
     # just giving a products variable to Product database 
-    products = Product.objects.all() 
-    return render(request, 'home.html', {'products': products})
+    products = Product.objects.all()
+    featured_experiences = Experience.objects.all()[:3]  
+    return render(request, 'home.html', {'products': products, 'featured_experiences': featured_experiences,})
 
 def about(request):
     return render(request, 'about.html', {})

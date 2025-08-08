@@ -7,6 +7,7 @@ urlpatterns = [
     # path('process_order/', views.process_order, name='process_order'),
     path('my-orders/', views.track_orders, name='track_orders'),
     path('shipped_dash/', views.shipped_dash, name='shipped_dash'),
+    path('delete-delivered/', views.delete_delivered_orders, name='delete_delivered_orders'),
     path('not_shipped_dash/', views.not_shipped_dash, name='not_shipped_dash'),
     path('orders/<int:pk>/', views.orders, name='orders'),
     path('create-order/', views.create_order, name='create_order'),

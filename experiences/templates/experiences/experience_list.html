@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+    <h2>Cultural Experiences</h2>
+    <div class="row">
+        {% for experience in experiences %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div id="carousel{{ experience.id }}" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image in experience.images.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="Image for {{ experience.title }}">
+                                </div>
+                            {% empty %}
+                                <div class="carousel-item active">
+                                    <img src="{% static 'default.jpg' %}" class="d-block w-100" alt="No image">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if experience.images.count > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ experience.id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ experience.id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{ experience.title }}</h5>
+                        <p>By: {{ experience.organizer_name }}</p>
+                        <p>Date: {{ experience.date }}</p>
+                        <p>Place: {{ experience.location }}</p>
+                        <p class="text-success">Price: ₹{{ experience.price }}</p>
+                        <a href="{% url 'experience_detail' experience.id %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No experiences available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

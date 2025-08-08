@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Customer, Product, Order, Profile, ProductImage
+from .models import Category, Customer, Product, Order, Profile, ProductImage, NewsletterSubscriber
 from django.contrib.auth.models import User
 # Register your models here.
 admin.site.register(Category)
@@ -37,3 +37,6 @@ admin.site.unregister(User)
 
 #Re-register the new way
 admin.site.register(User, UserAdmin)
+
+#Newsletter
+admin.site.register(NewsletterSubscriber)

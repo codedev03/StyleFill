@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5">
+    <h2 class="mb-3">{{ experience.title }}</h2>
+    <p class="lead">{{ experience.description }}</p>
+    <p><i class="bi bi-person-circle"></i> <strong>Conductor:</strong> {{ experience.organizer_name }}</p>
+    <p><i class="bi bi-calendar-event"></i> {{ experience.date }} {{ experience.time }}</p>
+    <p><i class="bi bi-geo-alt"></i> {{ experience.location }}</p>
+    <p><strong>Contact:</strong> {{ experience.representative_email }} | {{ experience.representative_phone }}</p>
+    <p class="fs-4 text-success">₹{{ experience.price }}</p>
+
+    <form method="post" action="{% url 'book_experience' experience.id %}">
+        {% csrf_token %}
+        <button class="btn btn-success">Book & Pay</button>
+    </form>
+</div>
+{% endblock %}

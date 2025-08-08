@@ -15,9 +15,11 @@ from payment.forms import ShippingForm
 from payment.models import ShippingAddress, Order, OrderItem
 from django.contrib.auth.models import User
 from django.contrib import messages
-from store.models import Product, Profile, Review
+from store.models import Product, Profile, Review, NewsletterSubscriber
 from django.db.models import Avg, Count, Sum
 from decimal import Decimal
+from datetime import timedelta
+from django.db.models import Q
 from django.conf import settings
 import os
 import logging
@@ -40,7 +42,7 @@ def admin_dashboard(request):
     order_count = Order.objects.count()
     completed_orders = Order.objects.filter(status='delivered').count()
     pending_orders = Order.objects.exclude(status='delivered').count()
-
+    subscribers = NewsletterSubscriber.objects.all()
     feedback_count = Review.objects.count()
     average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
     total_revenue = Order.objects.aggregate(total=Sum('amount_paid'))['total']
@@ -55,6 +57,7 @@ def admin_dashboard(request):
         "total_revenue": total_revenue or 0,
         "now": timezone.now(),
         "greeting": get_greeting(),
+        "subscribers": subscribers,
     }
 
     return render(request, "admin_custom/dashboard.html", context)
@@ -73,7 +76,12 @@ def send_order_status_email(order):
 
 @login_required
 def track_orders(request):
-    orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
+    threshold_time = timezone.now() - timedelta(minutes=30)
+    
+    orders = Order.objects.filter(
+        Q(status__in=['processing', 'shipped', 'out_for_delivery']) |
+        Q(status='delivered', date_ordered__gte=threshold_time)
+    ).filter(user=request.user).order_by('-date_ordered')
     for index, order in enumerate(orders, 1):
         order.user_order_number = index
     return render(request, 'payment/tracking.html', {'orders': orders})
@@ -154,8 +162,8 @@ def shipped_dash(request):
 
         for order in orders:
             order.has_go_naked = any(item.go_naked for item in order.orderitem_set.all())
-        for order in orders:
-            print(f"Order #{order.id} Go Naked: {order.has_go_naked}")
+        # for order in orders:
+        #     print(f"Order #{order.id} Go Naked: {order.has_go_naked}")
         if request.method == "POST":
             SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
             order_id = request.POST.get('order_id')
@@ -183,6 +191,13 @@ def shipped_dash(request):
         messages.error(request, "Access Denied!")
         return redirect('home')
 
+
+@login_required
+def delete_delivered_orders(request):
+    if request.method == "POST":
+        messages.success(request, "All delivered orders have been deleted.")
+        Order.objects.filter(status='delivered').delete()
+    return redirect('shipped_dash')
 
 def create_order(request):
     if request.method == 'POST':

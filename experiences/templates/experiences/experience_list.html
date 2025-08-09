@@ -1,8 +1,66 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
+<style>
+    .kawaii-header {
+        position: relative;
+        height: 200px;
+        background: linear-gradient(270deg, #ffdde1, #ee9ca7, #a1c4fd, #c2e9fb);
+        background-size: 800% 800%;
+        animation: gradientShift 10s ease infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-bottom: 5px solid #ffb6c1;
+    }
+
+    .checker-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%), 
+                        linear-gradient(-45deg, rgba(255,255,255,0.2) 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.2) 75%), 
+                        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.2) 75%);
+        background-size: 40px 40px;
+        z-index: 1;
+    }
+
+    .kawaii-title {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        font-size: 3rem;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 3px 3px 0px #ffb6c1, -2px -2px 0px #a1c4fd;
+        z-index: 2;
+        animation: floatText 4s ease-in-out infinite;
+    }
+
+    /* Floating animation */
+    @keyframes floatText {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    /* Gradient animation */
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+</style>
+<!-- Kawaii Animated Gradient Header -->
+<div class="kawaii-header">
+    <div class="checker-overlay"></div>
+    <h1 class="kawaii-title">Cultural Events ✨🎀</h1>
+</div>
+
 <div class="container my-5">
-    <h2>Cultural Experiences</h2>
+    <!-- <h2>Cultural Experiences</h2> -->
     <div class="row">
         {% for experience in experiences %}
             <div class="col-md-4 mb-4">

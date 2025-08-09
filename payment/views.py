@@ -1,7 +1,5 @@
 from django.utils import timezone
-import razorpay
-import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404 , redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 #email
@@ -13,15 +11,19 @@ from email.mime.image import MIMEImage
 from cart.cart import Cart
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress, Order, OrderItem
+from experiences.models import Experience, Booking
 from django.contrib.auth.models import User
 from django.contrib import messages
 from store.models import Product, Profile, Review, NewsletterSubscriber
 from django.db.models import Avg, Count, Sum
 from decimal import Decimal
-from datetime import timedelta
+from datetime import timedelta, date
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import os
+import razorpay
+import json
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
@@ -223,20 +225,20 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=400)
 
 def billing_info(request):
-    # Initialize cart and get common data (for both GET and POST)
     cart = Cart(request)
     cart_products = cart.get_prods
     quantities = cart.get_quants
     totals = Decimal(cart.cart_total())
-    
+
+    # Always define this at the start
+    experience_booking = request.session.get('experience_booking')
+
     if request.method == 'POST':
-        # Handle shipping and payment data
         shipping_method = request.POST.get('shipping_method')
-        shipping_cost = 50 if shipping_method == 'standard' else 100
-        total_amount = totals + shipping_cost
+        shipping_cost = 0 if experience_booking else (50 if shipping_method == 'standard' else 100)
+        total_amount = (Decimal(experience_booking['price']) if experience_booking else totals) + shipping_cost
 
-
-        #Create a session with shipping info
+        # Create shipping info dict
         my_shipping = {
             'method': shipping_method,
             'cost': shipping_cost,
@@ -251,68 +253,92 @@ def billing_info(request):
             'shipping_country': request.POST.get('shipping_country'),
         }
         request.session['my_shipping'] = my_shipping
-
-        full_name = request.POST.get('shipping_full_name')
-        email = request.POST.get('shipping_email')
-        shipping_address = f"{request.POST.get('shipping_address1')}\n{request.POST.get('shipping_address2')}\n{request.POST.get('shipping_city')}\n{request.POST.get('shipping_state')}\n{request.POST.get('shipping_zipcode')}\n{request.POST.get('shipping_country')}"
-        amount_paid = total_amount
-
-        # Store essential info in session
-        request.session['shipping_info'] = my_shipping
-        request.session['total_amount'] = str(total_amount)  # Use str to avoid Decimal serialization issues
-
+        request.session['total_amount'] = str(total_amount)
 
         return render(request, "payment/billing_info.html", {
+            "experience_booking": experience_booking,
             "cart_products": cart_products,
             "quantities": quantities,
-            "totals": totals,
+            "totals": totals if not experience_booking else experience_booking['price'],
             "shipping_info": my_shipping,
             "total_amount": total_amount,
             "razorpay_merchant_key": settings.RAZORPAY_KEY_ID
         })
 
-    # For GET requests or invalid data
+    # GET request
     if not request.session.get('my_shipping'):
         messages.error(request, "Please complete shipping information first")
         return redirect('checkout')
-        
+
+    shipping_info = request.session['my_shipping']
+    total_amount = (Decimal(experience_booking['price']) if experience_booking else totals) + \
+                   (0 if experience_booking else (50 if shipping_info.get('method') == 'standard' else 100))
+
     return render(request, "payment/billing_info.html", {
+        "experience_booking": experience_booking,
         "cart_products": cart_products,
         "quantities": quantities,
-        "totals": totals,
-        "shipping_info": request.session['my_shipping'],
-        "total_amount": totals + (50 if request.session['my_shipping'].get('method') == 'standard' else 100),
-        "razorpay_merchant_key": settings.RAZORPAY_KEY_ID  # Pass the key to the template
+        "totals": totals if not experience_booking else experience_booking['price'],
+        "shipping_info": shipping_info,
+        "total_amount": total_amount,
+        "razorpay_merchant_key": settings.RAZORPAY_KEY_ID
     })
-    #     # Check to see if user is logged in
-    #     if request.user.is_authenticated:
-    #         # get the billing form
-    #         billing_form = PaymentForm()
-    #         return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":my_shipping, "billing_form":billing_form, "total_amount":total_amount})
-    #     else:
-    #         # get the billing form
-    #         billing_form = PaymentForm()
-    #         # Not logged in
-    #         return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_info":request.POST, "billing_form":billing_form})
-    #     shipping_form = request.POST
-    #     return render(request, "payment/billing_info.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form})
-    # else:
-    #     messages.success(request, "Access Denied")
-    #     return redirect('home')
-        
 
-
+@login_required
 def payments_success(request):
     payment_id = request.GET.get('payment_id')  # Get payment ID from Razorpay redirect
+    # 1️⃣ Check if this was an experience booking
+    if request.session.get("is_experience"):
+        booking_id = request.session.get("booking_id")
+        booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+        
+        # Mark booking as paid
+        booking.payment_id = payment_id
+        booking.paid = True
+        booking.save()
+        
+        # ✅ Send confirmation email for the experience ticket
+        subject = f"🎟️ Booking Confirmed – {booking.experience.title}"
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = [request.user.email]
+
+        html_content = render_to_string('emails/experience_email.html', {
+            'is_experience': True,
+            'booking': booking,
+            'experience': booking.experience,
+            'user': request.user,
+            'current_year': date.today().year
+        })
+
+        if not booking_id:
+            messages.error(request, "Booking information missing. Please contact support.")
+            return redirect('home')
+
+
+        email = EmailMultiAlternatives(subject, '', from_email, to_email)
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
+        # Clear session keys to avoid accidental reuse
+        request.session.pop("is_experience", None)
+        request.session.pop("booking_id", None)
+
+        return render(request, "payment/payment_success.html", {
+            "is_experience": True,
+            "booking": booking,
+            "payment_id": payment_id
+        })
+    # 2️⃣ Else: normal product order flow
     shipping_info = request.session.get('shipping_info')
+    if not shipping_info:
+        logger.warning("No shipping info found in session during product payment success.")
+        messages.error(request, "Shipping info not found.")
+        return redirect('home')
     total_amount = Decimal(request.session.get('total_amount', '0'))
     logger.info(f"Payment successful with ID: {payment_id}")
     logger.debug(f"Shipping info in session: {shipping_info}")
     logger.info(f"Shipping cost saved in order: {shipping_info.get('cost')}")
 
-    if not shipping_info:
-        messages.error(request, "Shipping info not found.")
-        return redirect('home')
     order_id = request.session.get('latest_order_id')
 
     if not order_id:
@@ -353,8 +379,7 @@ def payments_success(request):
             price=price,
             go_naked=go_naked  # ✅ This assumes your model has this field
         )
-        
-        
+
         if request.user.is_authenticated:
             order_item.user = request.user
         order_item.save()
@@ -401,9 +426,64 @@ def payments_success(request):
     for key in ['latest_order_id', 'shipping_info', 'total_amount', 'razorpay_order_id']:
         request.session.pop(key, None)
     messages.success(request, "Your order was successful! 🎉 Cart is now cleared.")
-    return render(request, "payment/payment_success.html", {"payment_id": payment_id})
+    return render(request, "payment/payment_success.html", {"payment_id": payment_id, "order": order, "order_items": order_items, "is_experience": False})
 
-def checkout(request):
+def checkout(request, product_id=None, experience_id=None):
+    is_experience = False
+    product = None
+    booking = None
+
+    if product_id:
+        product = get_object_or_404(Product, id=product_id)
+    elif experience_id:
+        is_experience = True
+        booking = get_object_or_404(Booking, id=experience_id)
+    # Detect experience booking
+    if request.method == 'POST' and request.POST.get('is_experience') == 'true':
+        experience_id = request.POST.get('experience_id')
+        experience = Experience.objects.get(id=experience_id)
+        # ✅ Create the booking in DB so payment_success can update it
+        booking = Booking.objects.create(
+            user=request.user,
+            experience=experience,
+            paid=False  # Will be updated in payments_success
+        )
+
+        # ✅ Save identifiers in session for payment_success
+        request.session["is_experience"] = True
+        request.session["booking_id"] = booking.id
+        phone_number = None
+        if request.user.is_authenticated:
+            shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
+            shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
+            try:
+                user_profile = Profile.objects.get(user=request.user)
+                phone_number = user_profile.phone
+            except Profile.DoesNotExist:
+                phone_number = None
+        else:
+            shipping_form = ShippingForm(request.POST or None)
+
+        # Store in session for billing page
+        request.session['experience_booking'] = {
+            'id': experience.id,
+            'title': experience.title,
+            'price': str(experience.price),
+            'date': str(experience.date),
+            'time': str(experience.time),
+            'location': experience.location
+        }
+
+        # Render checkout with *only this experience*
+        return render(request, "payment/checkout.html", {
+            "experience": experience,
+            "title": experience.title,
+            "totals": float(experience.price),  # price instead of cart total
+            "shipping_form": shipping_form,
+            "billing_phone": phone_number,
+            "is_experience": True
+        })
+    # --- Existing product/cart checkout logic ---
     cart = Cart(request)
     cart_products = cart.get_prods
     quantities = cart.get_quants
@@ -418,8 +498,19 @@ def checkout(request):
             phone_number = user_profile.phone
         except Profile.DoesNotExist:
             phone_number = None  # Optional handling/logging
-        return render(request, "payment/checkout.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form, "billing_phone": phone_number,})
+        return render(request, "payment/checkout.html", {
+            "cart_products":cart_products, 
+            "quantities":quantities,
+            "totals":totals, 
+            "shipping_form":shipping_form, 
+            "billing_phone": phone_number,
+            })
     else:
         #Checkout as guest
         shipping_form = ShippingForm(request.POST or None)
-        return render(request, "payment/checkout.html", {"cart_products":cart_products, "quantities":quantities, "totals":totals, "shipping_form":shipping_form})
+        return render(request, "payment/checkout.html", {
+            "cart_products":cart_products, 
+            "quantities":quantities, 
+            "totals":totals, 
+            "shipping_form":shipping_form,
+            })

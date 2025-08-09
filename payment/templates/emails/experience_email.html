@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Experience Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #fff5f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            max-width: 500px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 6px 15px rgba(255,182,193,0.3);
+            border: 3px dashed #ffb6c1;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #ffb6c1;
+            text-align: center;
+            padding: 25px 20px;
+            color: white;
+        }
+        .card-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .card-header p {
+            margin: 5px 0 0;
+            font-size: 16px;
+        }
+        .greeting {
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #ffe4ec;
+            color: #ff69b4;
+            font-weight: bold;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-body h2 {
+            margin-top: 0;
+            color: #ff69b4;
+            text-align: center;
+        }
+        .details {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #fff0f5;
+            border-radius: 15px;
+            font-size: 15px;
+            border: 1px solid #ffe4ec;
+        }
+        .details p {
+            margin: 8px 0;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #ff69b4;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            padding: 12px;
+            background-color: #fffafc;
+        }
+        @media (max-width: 600px) {
+            .card {
+                border-radius: 15px;
+            }
+            .card-body {
+                padding: 15px;
+            }
+            .details {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-header">
+        <h1>Booking Confirmed! 🎉</h1>
+        <p>Thank you for booking with StyleFill 💖</p>
+    </div>
+    <div class="greeting">
+        Hi {{ user.first_name }} 🌸
+    </div>
+    <div class="card-body">
+        <h2>{{ experience.title }}</h2>
+        <div class="details">
+            <p><span class="highlight">📅 Date:</span> {{ experience.date }}</p>
+            <p><span class="highlight">⏰ Time:</span> {{ experience.time }}</p>
+            <p><span class="highlight">📍 Place:</span> {{ experience.location }}</p>
+            <p><span class="highlight">🎤 Conductor:</span> {{ experience.organizer_name }}</p>
+            <p><span class="highlight">💰 Price Paid:</span> ₹{{ experience.price }}</p>
+        </div>
+        <p style="text-align:center;">We can’t wait to see you! Please arrive 15 minutes early 🌷</p>
+    </div>
+    <div class="footer">
+        © {{ current_year }} StyleFill. All rights reserved.
+    </div>
+</div>
+
+</body>
+</html>

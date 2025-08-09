@@ -20,7 +20,7 @@ class ExperienceImage(models.Model):
     image = models.ImageField(upload_to='experience_images/')
 
 class Booking(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)

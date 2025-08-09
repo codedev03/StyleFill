@@ -90,6 +90,20 @@
                 100% { opacity: 1; transform: scale(1.5); }
             }
 
+            .heading-box {
+                border: 4px solid #f8c8dc; /* pastel pink border */
+                background-color: #d6f5d6; /* pastel green background */
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+
+            .heading-box h3 {
+                color: #333;
+                font-family: 'Comic Sans MS', cursive, sans-serif; /* gives a friendly vibe */
+            }
+
+
         </style>
         <!-- Section-->
         <section class="py-5">
@@ -158,10 +172,11 @@
             </div>
 
             <div class="container mt-5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3>Upcoming Cultural Experiences</h3>
-                    <a href="{% url 'experience_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                <!-- Heading box -->
+                <div class="heading-box mb-4 text-center">
+                    <h3 class="mb-0">Upcoming Cultural Experiences</h3>
                 </div>
+            
                 <div class="row">
                     {% for experience in featured_experiences %}
                         <div class="col-md-4 mb-4">
@@ -183,7 +198,12 @@
                         <p>No experiences available.</p>
                     {% endfor %}
                 </div>
-            </div>
             
+                <!-- View All button at bottom -->
+                <div class="text-center mt-4">
+                    <a href="{% url 'experience_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
+            </div>
+
         </section>
 {% endblock %}

@@ -24,10 +24,21 @@
                     autoplay>
                 </lottie-player>
             </div>
-
+            
             <h2 class="mt-4 text-success fw-bold">Payment Successful!</h2>
             <p class="lead">Thank you for your purchase. Your payment has been processed.</p>
             <p>🧾 Payment ID: <strong>{{ payment_id }}</strong></p>
+            
+            {% if is_experience %}
+                <div class="mt-4 border p-3 rounded bg-light">
+                    <h2>Your booking for {{ booking.experience.title }} is confirmed! 🎉</h2>
+                    <p><strong>Date:</strong> {{ booking.experience.date }} {{ booking.experience.time }}</p>
+                    <p><strong>Location:</strong> {{ booking.experience.location }}</p>
+                </div>
+            {% else %}
+                <!-- Existing product order table or order details here -->
+            {% endif %}
+
             <a href="{% url 'home' %}" class="btn btn-primary mt-3">🏡 Go to Home</a>
         </div>
         

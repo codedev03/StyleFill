@@ -73,28 +73,39 @@
                               Order Summary
                             </div>
                             <div class="card-body">
-                                {% for product in cart_products %}
-                                    <p>{{ product.name }}:
-                                        {% if product.is_sale %}
-                                            ₹{{ product.sale_price }}
-                                        {% else %}
-                                            ₹{{ product.price }}
-                                        {% endif %}
-                                    </p>
-                                    <br>
-                                    <small>
-                                    Quantity:
-                                    {% for key, value in quantities.items %}
-                                        {% if key == product.id|slugify %}
-                                            <strong>{{ value.quantity }}</strong> 
-                                            {% if value.go_naked %}
-                                                <span class="badge bg-warning text-dark ms-2">Go Naked 🌳🌏</span>
+                                {% if experience_booking %}
+                                    <p>{{ experience_booking.title }}: ₹{{ experience_booking.price }}</p>
+                                    <p>Date: {{ experience_booking.date }} {{ experience_booking.time }}</p>
+                                    <p>Location: {{ experience_booking.location }}</p>
+                                {% else %}
+                                    {% for product in cart_products %}
+                                        <p>{{ product.name }}:
+                                            {% if product.is_sale %}
+                                                ₹{{ product.sale_price }}
+                                            {% else %}
+                                                ₹{{ product.price }}
                                             {% endif %}
-                                        {% endif %}
+                                        </p>
+                                        <br>
+                                        <small>
+                                        Quantity:
+                                        {% for key, value in quantities.items %}
+                                            {% if key == product.id|slugify %}
+                                                <strong>{{ value.quantity }}</strong> 
+                                                {% if value.go_naked %}
+                                                    <span class="badge bg-warning text-dark ms-2">Go Naked 🌳🌏</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    
+                                        </small>
+                                        <br><br>
                                     {% endfor %}
-                                    </small>
-                                    <br><br>
-                                {% endfor %}
+                                {% endif %}
+                                {% if not experience_booking %}
+                                    <strong>Shipping Cost: ₹{{ shipping_info.cost }}</strong><br>
+                                {% endif %}
+
                                 <strong>Subtotal: ₹{{ totals }}</strong><br>
                                 <strong>Shipping Cost: ₹{{ shipping_info.cost }}</strong><br>
                                 <strong>Total: ₹{{ total_amount }}</strong>
@@ -127,19 +138,7 @@
                                 Payment Info
                             </div>
                             <div class="card-body">
-                                <!-- <form method="POST" id="payment-form">
-                                    {% csrf_token %} -->
-                                    
-                                    <!-- Display messages only once -->
-                                    <!-- {% if messages %}
-                                    <div class="alert alert-danger">
-                                        {% for message in messages %}
-                                        <p>{{ message }}</p>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %} -->
                                     <button type="submit" class="btn btn-primary" id="google-pay-button">Pay Now</button>
-                                <!-- </form> -->
                             </div>
                         </div>
                     </div>

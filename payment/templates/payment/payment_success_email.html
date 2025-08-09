@@ -20,6 +20,8 @@
         <p style="font-size: 13px; color: #999; margin-bottom: 10px;">
             📱 Tip: On smaller screens, swipe left/right  on the table to see more details.
         </p>
+    <h2 style="color: #ff6f61;">Hi {{ order.full_name }},</h2>
+
 
         <!-- Responsive Table Wrapper for Email -->
         <div style="border: 2px dotted #f08080; border-radius: 10px; padding: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
@@ -62,7 +64,6 @@
 
 
         <h3 style="margin-top: 30px; color: #ff4500;">Total Paid: ₹{{ order.amount_paid }}</h3>
-
         <p style="margin-top: 20px;">We’ll ship your order soon. ✨ Thank you for supporting our cute little shop!</p>
         <p style="margin-top: 20px; font-size: 14px; color: #777;">
             You can view your order processing status anytime at <a href="https://stylefill.com" style="color: #ff69b4;">stylefill.com</a> 💻

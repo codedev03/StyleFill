@@ -9,11 +9,16 @@
     <p><i class="bi bi-calendar-event"></i> {{ experience.date }} {{ experience.time }}</p>
     <p><i class="bi bi-geo-alt"></i> {{ experience.location }}</p>
     <p><strong>Contact:</strong> {{ experience.representative_email }} | {{ experience.representative_phone }}</p>
-    <p class="fs-4 text-success">₹{{ experience.price }}</p>
+    <p class="fs-4 text-success">₹{{ experience.price }}</p><p>/per person</p>
 
-    <form method="post" action="{% url 'book_experience' experience.id %}">
+    <form method="post" action="{% url 'checkout' %}">
         {% csrf_token %}
+        <input type="hidden" name="is_experience" value="true">
+        <input type="hidden" name="experience_id" value="{{ experience.id }}">
+        <input type="hidden" name="price" value="{{ experience.price }}">
+        <input type="hidden" name="title" value="{{ experience.title }}">
         <button class="btn btn-success">Book & Pay</button>
     </form>
+    
 </div>
 {% endblock %}

@@ -31,8 +31,7 @@
         <!-- Product Details - Takes 5 columns on medium+ screens -->
         <div class="col-lg-5 col-md-6">
             <div class="product-details">
-              <h2 class="mb-3 fw-bold" style="font-size: 2.5rem; color: #333;">{{ product.name }}</h2>
-                
+                <h2 class="mb-3 fw-bold" style="font-size: 2.5rem; color: #333;">{{ product.name }}</h2>
                 <!-- Price Section -->
                 <div class="mb-4">
                     {% if product.is_sale %}
@@ -65,13 +64,20 @@
                     </div>
                 </div>
                 
-                <!-- Note for Seller -->
-                <div class="mb-4">
-                    <label for="noteForSeller" class="form-label fw-bold">
-                        ✏️ Add a Note (Optional)
-                    </label>
-                    <textarea id="noteForSeller" name="note_for_seller" class="form-control" rows="3"
-                        placeholder="Write any special instructions here... (e.g., 'Happy Birthday' on the package, avoid plastic wrapping, etc.)"></textarea>
+                <!-- Note for Seller Section -->
+                <div class="note-for-seller p-3 my-4 border rounded" style="background-color: #fff8dc;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">✏️ Add a Note for your order</span>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#noteSellerCollapse" aria-expanded="false" aria-controls="noteSellerCollapse">
+                            Add Note
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-2" id="noteSellerCollapse">
+                        <textarea id="noteForSeller" name="note_for_seller" class="form-control" rows="3"
+                            placeholder="Write any special instructions here... (e.g., 'Happy Birthday' on the package, Gift for loved ones, etc.)"></textarea>
+                        <small class="text-muted">We will place your order as per this note. Thank You.☺️</small>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
@@ -196,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const productId = this.value;
         const quantity = document.getElementById("qty-cart").value;
         const goNaked = document.getElementById("goNakedCheck")?.checked || false;
+        const noteForSeller = document.getElementById("noteForSeller")?.value || ""; // get note
 
         fetch('/cart/add/', {
             method: 'POST',
@@ -206,7 +213,8 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify({
                 product_id: productId,
                 quantity: quantity,
-                go_naked: goNaked
+                go_naked: goNaked,
+                note_for_seller: noteForSeller // send note to backend
             })
         }).then(response => response.json())
             .then(json => {

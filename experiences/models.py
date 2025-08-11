@@ -19,6 +19,13 @@ class ExperienceImage(models.Model):
     experience = models.ForeignKey(Experience, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='experience_images/')
 
+class ExperienceVideo(models.Model):
+    experience = models.ForeignKey(Experience, related_name='videos', on_delete=models.CASCADE)
+    video = models.FileField(upload_to='experience_videos/')
+
+    def __str__(self):
+        return f"Video for {self.experience.title}"
+
 class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE)

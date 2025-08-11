@@ -24,11 +24,12 @@ def cart_add(request):
             product_id = data.get('product_id')
             quantity = int(data.get('quantity', 1))
             go_naked = data.get('go_naked', False)
-
+            note_for_seller = data.get('note_for_seller', "").strip()
+            
             product = Product.objects.get(id=product_id)
 
             cart = Cart(request)
-            cart.add(product=product, quantity=quantity, go_naked=go_naked)
+            cart.add(product=product, quantity=quantity, go_naked=go_naked, note_for_seller=note_for_seller)
             messages.success(request, ("You have added the products..whoohooo! 🌸"))
             return JsonResponse({'success': True, 'qty': len(cart)})
             
@@ -63,23 +64,3 @@ def cart_update(request):
         response = JsonResponse({'qty': product_qty})
         messages.success(request, ("Your cart has been updated...whoohooo.."))
         return response
-    
-
-
-# def cart_update(request):
-#     logger.debug(f"POST data: {request.POST}")
-#     cart = Cart(request)
-#     if request.POST.get('action') == 'post':
-#         product_id = int(request.POST.get('product_id'))
-#         product_qty = int(request.POST.get('product_qty'))
-
-#         # Validate product_qty before conversion
-#         if not product_qty or not product_qty.isdigit():  # Check for empty or non-digit
-#             return JsonResponse({'error': 'Invalid product quantity'}, status=400)
-
-#         product_qty = int(product_qty)  # Safe to convert now
-
-#         cart.update(product=product_id, quantity=product_qty)
-#         response = JsonResponse({'qty':product_qty})
-#         return response
-#         # return redirect('cart_summary')

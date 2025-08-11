@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404 , redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.urls import reverse
 from django.http import JsonResponse
 #email
 from django.template.loader import render_to_string
@@ -48,7 +49,8 @@ def admin_dashboard(request):
     feedback_count = Review.objects.count()
     average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
     total_revenue = Order.objects.aggregate(total=Sum('amount_paid'))['total']
-
+    recent_orders = Order.objects.select_related("user").prefetch_related("items__product").order_by('-date_ordered')[:10]
+    
     context = {
         "customer_count": customer_count,
         "order_count": order_count,
@@ -60,6 +62,7 @@ def admin_dashboard(request):
         "now": timezone.now(),
         "greeting": get_greeting(),
         "subscribers": subscribers,
+        "recent_orders": recent_orders,
     }
 
     return render(request, "admin_custom/dashboard.html", context)
@@ -119,11 +122,11 @@ def orders(request, pk):
 
 def not_shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objects.filter(shipped=False, payment_completed=True)
+        orders = Order.objects.filter(shipped=False, payment_completed=True).prefetch_related("items")
         logger.info(f"Unshipped paid orders: {[o.id for o in orders]}")
         # ✅ Add this block to calculate `has_go_naked` per order
         for order in orders:
-            order.has_go_naked = any(item.go_naked for item in order.orderitem_set.all())
+            order.has_go_naked = any(item.go_naked for item in order.items.all())
         
         if request.method == "POST":
             SHIPPED_STATUSES = ["shipped", "out_for_delivery", "delivered"]
@@ -157,13 +160,13 @@ def not_shipped_dash(request):
 
 def shipped_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objects.filter(shipped=True, payment_completed=True)
+        orders = Order.objects.filter(shipped=True, payment_completed=True).prefetch_related("items")
         status_filter = request.GET.get("status")
         if status_filter in ["shipped", "out_for_delivery", "delivered"]:
             orders = orders.filter(status=status_filter)
 
         for order in orders:
-            order.has_go_naked = any(item.go_naked for item in order.orderitem_set.all())
+            order.has_go_naked = any(item.go_naked for item in order.items.all())
         # for order in orders:
         #     print(f"Order #{order.id} Go Naked: {order.has_go_naked}")
         if request.method == "POST":
@@ -204,25 +207,52 @@ def delete_delivered_orders(request):
 def create_order(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        total_amount = data.get('total_amount')
+        total_amount = Decimal(data.get('total_amount'))
         shipping_info = data.get('shipping_info')
+
         logger.info(f"Creating order with amount: {total_amount} and shipping info: {shipping_info}")
+
+        # 1️⃣ Create your own order record first
+        order = Order.objects.create(
+            full_name=shipping_info['shipping_full_name'],
+            email=shipping_info['shipping_email'],
+            shipping_address=(
+                f"{shipping_info['shipping_address1']}\n"
+                f"{shipping_info['shipping_address2']}\n"
+                f"{shipping_info['shipping_city']}\n"
+                f"{shipping_info['shipping_state']}\n"
+                f"{shipping_info['shipping_zipcode']}\n"
+                f"{shipping_info['shipping_country']}"
+            ),
+            phone_number=shipping_info.get('shipping_phone'),
+            shipping_cost=Decimal(shipping_info.get('cost', '0')),
+            shipping_method=shipping_info.get('method', ''),
+            amount_paid=total_amount,
+            payment_completed=False,
+            user=request.user if request.user.is_authenticated else None
+        )
+
+        # 2️⃣ Create Razorpay order
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         try:
             razorpay_order = client.order.create({
-                'amount': int(Decimal(total_amount) * 100),  # Amount in paise
+                'amount': int(total_amount * 100),  # Amount in paise
                 'currency': 'INR',
                 'payment_capture': '1'
             })
-            request.session['razorpay_order_id'] = razorpay_order['id']
-            request.session['latest_order_id'] = razorpay_order['id']
+
+            # 3️⃣ Save both IDs in session
+            request.session['latest_order_id'] = order.id  # DB ID
+            request.session['razorpay_order_id'] = razorpay_order['id']  # Razorpay ID
+
             return JsonResponse({
                 'order_id': razorpay_order['id'],
                 'amount': razorpay_order['amount']
             })
         except Exception as e:
-            logger.error(f"Error creating order: {str(e)}")
+            logger.error(f"Error creating Razorpay order: {str(e)}")
             return JsonResponse({'error': str(e)}, status=400)
+
 
 def billing_info(request):
     cart = Cart(request)
@@ -290,6 +320,9 @@ def payments_success(request):
     # 1️⃣ Check if this was an experience booking
     if request.session.get("is_experience"):
         booking_id = request.session.get("booking_id")
+        if not booking_id:
+            messages.error(request, "Booking information missing. Please contact support.")
+            return redirect('home')
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
         
         # Mark booking as paid
@@ -310,11 +343,6 @@ def payments_success(request):
             'current_year': date.today().year
         })
 
-        if not booking_id:
-            messages.error(request, "Booking information missing. Please contact support.")
-            return redirect('home')
-
-
         email = EmailMultiAlternatives(subject, '', from_email, to_email)
         email.attach_alternative(html_content, "text/html")
         email.send()
@@ -328,63 +356,87 @@ def payments_success(request):
             "booking": booking,
             "payment_id": payment_id
         })
-    # 2️⃣ Else: normal product order flow
-    shipping_info = request.session.get('shipping_info')
-    if not shipping_info:
-        logger.warning("No shipping info found in session during product payment success.")
-        messages.error(request, "Shipping info not found.")
-        return redirect('home')
-    total_amount = Decimal(request.session.get('total_amount', '0'))
-    logger.info(f"Payment successful with ID: {payment_id}")
-    logger.debug(f"Shipping info in session: {shipping_info}")
-    logger.info(f"Shipping cost saved in order: {shipping_info.get('cost')}")
-
+    # 2️⃣ PRODUCT ORDERS (No shipping info from session)
     order_id = request.session.get('latest_order_id')
-
     if not order_id:
         logger.warning("No order ID found in session during payment success.")
         messages.error(request, "Something went wrong. No order found.")
         return redirect('home')
 
-    # Create Order
-    order_data = {
-        "full_name": shipping_info['shipping_full_name'],
-        "email": shipping_info['shipping_email'],
-        "shipping_address": f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
-        "phone_number": shipping_info.get('shipping_phone'),
-        "shipping_cost": Decimal(shipping_info.get('cost', '0')),
-        "shipping_method": shipping_info.get('method', ''),
-        "amount_paid": total_amount,
-        "payment_completed": True,
-        "payment_id": payment_id
-    }
-    if request.user.is_authenticated:
-        order_data['user'] = request.user
+    order = get_object_or_404(Order, id=order_id)
+    # Update order payment status
+    order.payment_id = payment_id
+    order.payment_completed = True
+    order.save()
+    # ✅ Pull note_for_seller from session (if it exists)
+    note_for_seller = request.session.get('note_for_seller')
+    if note_for_seller:
+        order.note_for_seller = note_for_seller
 
-    order = Order.objects.create(**order_data)
-    # Create OrderItems
-    cart = Cart(request)
-    cart_products = cart.get_prods
-    quantities = cart.get_quants
-    # After saving all order items
-    for product in cart_products():
-        item_data = quantities().get(str(product.id), {'quantity': 1, 'go_naked': False})
-        quantity = item_data['quantity']
-        go_naked = item_data.get('go_naked', False)
-        price = product.sale_price if product.is_sale else product.price
-        order_item = OrderItem(
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=price,
-            go_naked=go_naked  # ✅ This assumes your model has this field
-        )
 
-        if request.user.is_authenticated:
-            order_item.user = request.user
-        order_item.save()
-    # ✅ Send email to customer
+    # # 2️⃣ Else: normal product order flow
+    # shipping_info = request.session.get('shipping_info')
+    # if not shipping_info:
+    #     logger.warning("No shipping info found in session during product payment success.")
+    #     messages.error(request, "Shipping info not found.")
+    #     return redirect('home')
+    # total_amount = Decimal(request.session.get('total_amount', '0'))
+    # logger.info(f"Payment successful with ID: {payment_id}")
+    # logger.debug(f"Shipping info in session: {shipping_info}")
+    # logger.info(f"Shipping cost saved in order: {shipping_info.get('cost')}")
+
+    # order_id = request.session.get('latest_order_id')
+
+    # if not order_id:
+    #     logger.warning("No order ID found in session during payment success.")
+    #     messages.error(request, "Something went wrong. No order found.")
+    #     return redirect('home')
+
+    # # Create Order
+    # order_data = {
+    #     "full_name": shipping_info['shipping_full_name'],
+    #     "email": shipping_info['shipping_email'],
+    #     "shipping_address": f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
+    #     "phone_number": shipping_info.get('shipping_phone'),
+    #     "shipping_cost": Decimal(shipping_info.get('cost', '0')),
+    #     "shipping_method": shipping_info.get('method', ''),
+    #     "amount_paid": total_amount,
+    #     "payment_completed": True,
+    #     "payment_id": payment_id
+    # }
+    # if request.user.is_authenticated:
+    #     order_data['user'] = request.user
+
+    # order = Order.objects.create(**order_data)
+    # Create OrderItems If order items are not yet created (guest checkout scenario), pull from cart
     order_items = OrderItem.objects.filter(order=order)
+    if not order_items.exists():
+        cart = Cart(request)
+        cart_products = cart.get_prods
+        quantities = cart.get_quants
+    # After saving all order items
+        for product in cart_products():
+        # for product in cart.get_prods():
+            item_data = quantities().get(str(product.id), {'quantity': 1, 'go_naked': False})
+            quantity = item_data['quantity']
+            go_naked = item_data.get('go_naked', False)
+            note_for_seller = item_data.get('note_for_seller', "")
+            price = product.sale_price if product.is_sale else product.price
+            OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                    price=price,
+                    go_naked=go_naked,
+                    note_for_seller=note_for_seller,
+                    user=request.user if request.user.is_authenticated else None
+            )
+
+            # if request.user.is_authenticated:
+            #     order_item.user = request.user
+            # order_item.save()
+        # ✅ Send email to customer
+        order_items = OrderItem.objects.filter(order=order)
 
     # Create a mapping of product ID to Content-ID
     cid_map = {}
@@ -423,12 +475,15 @@ def payments_success(request):
     # Clear cart and session
     cart = Cart(request)
     cart.clear()
-    for key in ['latest_order_id', 'shipping_info', 'total_amount', 'razorpay_order_id']:
+    for key in ['latest_order_id', 'shipping_info', 'total_amount', 'razorpay_order_id', 'note_for_seller']:
         request.session.pop(key, None)
     messages.success(request, "Your order was successful! 🎉 Cart is now cleared.")
     return render(request, "payment/payment_success.html", {"payment_id": payment_id, "order": order, "order_items": order_items, "is_experience": False})
 
 def checkout(request, product_id=None, experience_id=None):
+     # ✅ If not logged in, redirect to login page (and then back here after login)
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('login_user')}?next={request.path}")
     is_experience = False
     product = None
     booking = None
@@ -438,6 +493,13 @@ def checkout(request, product_id=None, experience_id=None):
     elif experience_id:
         is_experience = True
         booking = get_object_or_404(Booking, id=experience_id)
+    
+    # ✅ If this is a POST (form submit), save note_for_seller to session
+    if request.method == "POST":
+        note_for_seller = request.POST.get("note_for_seller", "").strip()
+        if note_for_seller:
+            request.session["note_for_seller"] = note_for_seller
+    
     # Detect experience booking
     if request.method == 'POST' and request.POST.get('is_experience') == 'true':
         experience_id = request.POST.get('experience_id')
@@ -490,9 +552,12 @@ def checkout(request, product_id=None, experience_id=None):
     totals = cart.cart_total()
     phone_number = None # Default if not logged in
     if request.user.is_authenticated:
-        shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
-        #Checked out as logged in user
-        shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
+        try:
+            shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
+            #Checked out as logged in user
+            shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
+        except ShippingAddress.DoesNotExist:
+            shipping_form = ShippingForm(request.POST or None)
         try:
             user_profile = Profile.objects.get(user=request.user)
             phone_number = user_profile.phone
@@ -509,8 +574,8 @@ def checkout(request, product_id=None, experience_id=None):
         #Checkout as guest
         shipping_form = ShippingForm(request.POST or None)
         return render(request, "payment/checkout.html", {
-            "cart_products":cart_products, 
-            "quantities":quantities, 
-            "totals":totals, 
+            "cart_products":cart_products,
+            "quantities":quantities,
+            "totals":totals,
             "shipping_form":shipping_form,
             })

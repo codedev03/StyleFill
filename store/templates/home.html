@@ -102,6 +102,40 @@
                 color: #333;
                 font-family: 'Comic Sans MS', cursive, sans-serif; /* gives a friendly vibe */
             }
+            .experience-card {
+                border: 2px solid orange;
+                border-radius: 10px;
+                overflow: hidden;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                position: relative;
+            }
+            .experience-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            }
+            .experience-card img {
+                height: 220px;
+                object-fit: cover;
+                width: 100%;
+                display: block;
+            }
+            /* .experience-title-overlay {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                color: white;
+                font-weight: bold;
+                text-align: center;
+                padding: 8px;
+                font-size: 1.2rem;
+            } */
+            .experience-card .card-title {
+                font-weight: bold;
+                text-align: center;
+                font-size: 1.25rem;
+                margin-bottom: 10px;
+            }
 
 
         </style>
@@ -180,7 +214,7 @@
                 <div class="row">
                     {% for experience in featured_experiences %}
                         <div class="col-md-4 mb-4">
-                            <div class="card h-100">
+                            <div class="card h-100 experience-card">
                                 {% if experience.images.first %}
                                     <img src="{{ experience.images.first.image.url }}" class="card-img-top" alt="{{ experience.title }}">
                                 {% else %}
@@ -190,7 +224,7 @@
                                     <h5 class="card-title">{{ experience.title }}</h5>
                                     <p class="mb-1"><strong>Date:</strong> {{ experience.date }}</p>
                                     <p class="mb-1"><strong>Location:</strong> {{ experience.location }}</p>
-                                    <a href="{% url 'experience_detail' experience.id %}" class="btn btn-sm btn-primary mt-2">Details</a>
+                                    <a href="{% url 'experience_detail' experience.id %}" class="btn btn-sm btn-primary mt-2 w-100">Details</a>
                                 </div>
                             </div>
                         </div>

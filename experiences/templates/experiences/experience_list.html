@@ -38,6 +38,68 @@
         z-index: 2;
         animation: floatText 4s ease-in-out infinite;
     }
+    /* Retro-Modern Color Palette */
+    :root {
+        --retro-orange: #FF914D;
+        --retro-cream: #FFF8E7;
+        --retro-teal: #008B8B;
+        --retro-brown: #5A3E2B;
+    }
+
+    .experience-card {
+        border: 2px solid var(--retro-orange);
+        border-radius: 12px;
+        background: var(--retro-cream);
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .experience-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    }
+
+    .experience-card .carousel-inner img {
+        height: 220px;
+        object-fit: cover;
+    }
+
+    /* Title with Retro Banner Style */
+    .experience-card h5 {
+        font-weight: bold;
+        text-align: center;
+        color: var(--retro-brown);
+        border-bottom: 2px dashed var(--retro-orange);
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+        font-family: 'Montserrat Alternates', sans-serif;
+    }
+
+    /* Price Tag */
+    .retro-price {
+        font-weight: bold;
+        color: var(--retro-teal);
+        background: rgba(255, 145, 77, 0.1);
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 8px;
+    }
+
+    /* Buttons with Retro Colors */
+    .retro-btn {
+        background-color: var(--retro-orange);
+        border: none;
+        color: white;
+        font-weight: bold;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+    .retro-btn:hover {
+        background-color: #e8752e;
+    }
 
     /* Floating animation */
     @keyframes floatText {
@@ -64,7 +126,7 @@
     <div class="row">
         {% for experience in experiences %}
             <div class="col-md-4 mb-4">
-                <div class="card">
+                <div class="card experience-card">
                     <div id="carousel{{ experience.id }}" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-inner">
                             {% for image in experience.images.all %}
@@ -90,12 +152,14 @@
                     </div>
 
                     <div class="card-body">
-                        <h5 class="card-title">{{ experience.title }}</h5>
+                        <!-- <h5 class="card-title">{{ experience.title }}</h5> -->
+                        <h5>{{ experience.title }}</h5>
                         <p>By: {{ experience.organizer_name }}</p>
                         <p>Date: {{ experience.date }}</p>
                         <p>Place: {{ experience.location }}</p>
-                        <p class="text-success">Price: ₹{{ experience.price }}</p>
-                        <a href="{% url 'experience_detail' experience.id %}" class="btn btn-primary">View Details</a>
+                        <!-- <p class="text-success">Price: ₹{{ experience.price }}</p> -->
+                        <p class="retro-price">Price: ₹{{ experience.price }}</p>
+                        <a href="{% url 'experience_detail' experience.id %}" class="retro-btn w-100 mt-2">View Details</a>
                     </div>
                 </div>
             </div>

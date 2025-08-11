@@ -70,7 +70,7 @@
                     <div class="col-md-6 offset-md-3">
                         <div class="card">
                             <div class="card-header">
-                              Order Summary
+                                Order Summary
                             </div>
                             <div class="card-body">
                                 {% if experience_booking %}
@@ -102,21 +102,20 @@
                                         <br><br>
                                     {% endfor %}
                                 {% endif %}
+
+                                <strong>Subtotal: ₹{{ totals }}</strong><br>
                                 {% if not experience_booking %}
                                     <strong>Shipping Cost: ₹{{ shipping_info.cost }}</strong><br>
                                 {% endif %}
-
-                                <strong>Subtotal: ₹{{ totals }}</strong><br>
-                                <strong>Shipping Cost: ₹{{ shipping_info.cost }}</strong><br>
                                 <strong>Total: ₹{{ total_amount }}</strong>
                                 <br><br>
                                 <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update Items</a>
                             </div>
-                          </div>
-                          <br>
-                          <div class="card">
+                        </div>
+                        <br>
+                        <div class="card">
                             <div class="card-header">
-                              Shipping Info
+                                Shipping Info
                             </div>
                             <div class="card-body">
                                 <p>Name: {{ shipping_info.shipping_full_name }}</p>

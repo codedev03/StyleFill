@@ -1,24 +1,163 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 
-<div class="container py-5">
-    <h2 class="mb-3">{{ experience.title }}</h2>
-    <p class="lead">{{ experience.description }}</p>
-    <p><i class="bi bi-person-circle"></i> <strong>Conductor:</strong> {{ experience.organizer_name }}</p>
-    <p><i class="bi bi-calendar-event"></i> {{ experience.date }} {{ experience.time }}</p>
-    <p><i class="bi bi-geo-alt"></i> {{ experience.location }}</p>
-    <p><strong>Contact:</strong> {{ experience.representative_email }} | {{ experience.representative_phone }}</p>
-    <p class="fs-4 text-success">₹{{ experience.price }}</p><p>/per person</p>
+<style>
+    :root {
+        --retro-orange: #FF914D;
+        --retro-cream: #FFF8E7;
+        --retro-teal: #008B8B;
+    }
 
-    <form method="post" action="{% url 'checkout' %}">
-        {% csrf_token %}
-        <input type="hidden" name="is_experience" value="true">
-        <input type="hidden" name="experience_id" value="{{ experience.id }}">
-        <input type="hidden" name="price" value="{{ experience.price }}">
-        <input type="hidden" name="title" value="{{ experience.title }}">
-        <button class="btn btn-success">Book & Pay</button>
-    </form>
+    /* Carousel full width & height */
+    .experience-carousel img,
+    .experience-carousel video {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .experience-hero {
+        background: linear-gradient(135deg, var(--retro-orange) 0%, var(--retro-teal) 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        margin-top: 25px;
+        margin-bottom: 30px;
+    }
+
+    .experience-hero h2 {
+        font-family: 'Montserrat Alternates', sans-serif;
+        font-weight: bold;
+        font-size: 2.2rem;
+    }
+
+    .experience-description {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        background: var(--retro-cream);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .experience-info {
+        background: white;
+        border: 2px dashed var(--retro-orange);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .price-tag {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--retro-teal);
+        background: rgba(0,139,139,0.1);
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    .retro-btn {
+        background-color: var(--retro-orange);
+        border: none;
+        color: white;
+        font-weight: bold;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        width: 100%;
+    }
+
+    .retro-btn:hover {
+        background-color: #e8752e;
+        transform: translateY(-2px);
+    }
+    .carousel-item img,
+    .carousel-item video {
+        height: 500px; /* set a consistent height */
+        object-fit: cover;
+    }
+
+</style>
+
+<div class="container-fluid p-0">
+
+    <!-- Carousel -->
+    <div id="experienceCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="hover">
+        <div class="carousel-inner">
+            {% if experience.images.exists or experience.videos.exists %}
+                {% for image in experience.images.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100" alt="Experience Image">
+                    </div>
+                {% endfor %}
+                {% for video in experience.videos.all %}
+                    <div class="carousel-item {% if not experience.images.exists and forloop.first %}active{% endif %}">
+                        <video class="d-block w-100" height="500" controls preload="metadata">
+                            <source src="{{ video.video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="carousel-item active">
+                    <img src="{% static 'default.jpg' %}" class="d-block w-100" alt="No Media Available">
+                </div>
+            {% endif %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#experienceCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#experienceCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
     
+
+
+    <!-- Hero Section -->
+    <div class="container">
+        <div class="experience-hero">
+            <h2>{{ experience.title }}</h2>
+        </div>
+
+        <!-- Description -->
+        <div class="experience-description">
+            <p>{{ experience.description }}</p>
+        </div>
+
+        <!-- Info Card -->
+        <div class="experience-info">
+            <p><i class="bi bi-person-circle"></i> <strong>Conductor:</strong> {{ experience.organizer_name }}</p>
+            <p><i class="bi bi-calendar-event"></i> {{ experience.date }} {{ experience.time }}</p>
+            <p><i class="bi bi-geo-alt"></i> {{ experience.location }}</p>
+            <p><strong>Contact:</strong> {{ experience.representative_email }} | {{ experience.representative_phone }}</p>
+            <p class="price-tag">₹{{ experience.price }} / per person</p>
+        </div>
+
+        <!-- Book Button -->
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'checkout' %}">
+                {% csrf_token %}
+                <input type="hidden" name="is_experience" value="true">
+                <input type="hidden" name="experience_id" value="{{ experience.id }}">
+                <input type="hidden" name="price" value="{{ experience.price }}">
+                <input type="hidden" name="title" value="{{ experience.title }}">
+                <button class="retro-btn">Book & Pay</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}?next={% url 'experience_detail' experience.id %}" class="btn btn-success">
+                Login to Book & Pay
+            </a>
+        {% endif %}
+    </div>
 </div>
+
 {% endblock %}

@@ -43,7 +43,7 @@
                         <!-- Products Ordered -->
                         <td>
                             <ul class="list-unstyled mb-0">
-                                {% for product in item.orderitem_set.all %}
+                                {% for product in item.items.all %}
                                 <li>🛍️ {{ product.product.name }} <small class="text-muted">(x{{ product.quantity }})</small></li>
                                 {% empty %}
                                 <li><small class="text-danger">No items</small></li>

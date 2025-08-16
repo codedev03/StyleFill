@@ -158,7 +158,13 @@
                         <p>Date: {{ experience.date }}</p>
                         <p>Place: {{ experience.location }}</p>
                         <!-- <p class="text-success">Price: ₹{{ experience.price }}</p> -->
-                        <p class="retro-price">Price: ₹{{ experience.price }}</p>
+                        <p class="retro-price">
+                            {% if experience.is_free %}
+                                Free
+                            {% else %}
+                                Price: ₹{{ experience.price }}
+                            {% endif %}
+                        </p>
                         <a href="{% url 'experience_detail' experience.id %}" class="retro-btn w-100 mt-2">View Details</a>
                     </div>
                 </div>

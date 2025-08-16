@@ -153,7 +153,7 @@
                 <button class="retro-btn">Book & Pay</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}?next={% url 'experience_detail' experience.id %}" class="btn btn-success">
+            <a href="{% url 'login_user' %}?next={% url 'experience_detail' experience.id %}" class="btn btn-success">
                 Login to Book & Pay
             </a>
         {% endif %}

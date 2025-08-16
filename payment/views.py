@@ -38,6 +38,13 @@ def get_greeting():
     else:
         return "🌙 Good Evening"
 
+@user_passes_test(lambda u: u.is_superuser)  # Only admins
+def delete_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.delete()
+    messages.success(request, "Booking deleted successfully.")
+    return redirect('admin_dashboard')
+
 @user_passes_test(lambda u: u.is_superuser)
 @login_required
 def admin_dashboard(request):
@@ -50,6 +57,7 @@ def admin_dashboard(request):
     average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
     total_revenue = Order.objects.aggregate(total=Sum('amount_paid'))['total']
     recent_orders = Order.objects.select_related("user").prefetch_related("items__product").order_by('-date_ordered')[:10]
+    recent_bookings = Booking.objects.select_related("user", "experience").order_by('-booking_date')[:10]
     
     context = {
         "customer_count": customer_count,
@@ -63,6 +71,7 @@ def admin_dashboard(request):
         "greeting": get_greeting(),
         "subscribers": subscribers,
         "recent_orders": recent_orders,
+        "recent_bookings": recent_bookings,
     }
 
     return render(request, "admin_custom/dashboard.html", context)
@@ -324,10 +333,19 @@ def payments_success(request):
             messages.error(request, "Booking information missing. Please contact support.")
             return redirect('home')
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
-        
+        experience = booking.experience
+
         # Mark booking as paid
         booking.payment_id = payment_id
         booking.paid = True
+        # 💰 Calculate platform fee and earning
+        price = experience.price
+        fee_percent = experience.platform_fee_percent
+        platform_fee = (price * fee_percent) / Decimal(100)
+        organizer_earning = price - platform_fee
+
+        booking.platform_fee = platform_fee
+        booking.organizer_earning = organizer_earning
         booking.save()
         
         # ✅ Send confirmation email for the experience ticket
@@ -354,7 +372,9 @@ def payments_success(request):
         return render(request, "payment/payment_success.html", {
             "is_experience": True,
             "booking": booking,
-            "payment_id": payment_id
+            "payment_id": payment_id,
+            "platform_fee": platform_fee,
+            "organizer_earning": organizer_earning
         })
     # 2️⃣ PRODUCT ORDERS (No shipping info from session)
     order_id = request.session.get('latest_order_id')

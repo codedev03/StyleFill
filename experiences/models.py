@@ -8,9 +8,11 @@ class Experience(models.Model):
     location = models.CharField(max_length=255)
     date = models.DateField()
     time = models.TimeField()
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    is_free = models.BooleanField(default=False)
     representative_email = models.EmailField()
     representative_phone = models.CharField(max_length=20)
+    platform_fee_percent = models.DecimalField(max_digits=5, decimal_places=2, default=10.00)  # e.g. 10%
 
     def __str__(self):
         return self.title
@@ -31,6 +33,8 @@ class Booking(models.Model):
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)
+    platform_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    organizer_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.user.username} - {self.experience.title}"

@@ -11,8 +11,15 @@ class ExperienceVideoInline(admin.TabularInline):
 
 class ExperienceAdmin(admin.ModelAdmin):
     inlines = [ExperienceImageInline, ExperienceVideoInline]
-    list_display = ('title', 'organizer_name', 'date', 'location', 'price')
+    list_display = ('title', 'organizer_name', 'date', 'location', 'price', 'is_free')
+    list_filter = ('is_free',)
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'experience', 'user', 'paid', 'booking_date')
+    list_filter = ('paid', 'experience')
+    search_fields = ('user__username', 'experience__title')
+    ordering = ('-booking_date',)
 # Register your models here.
 admin.site.register(Experience, ExperienceAdmin)
 
-admin.site.register(Booking)

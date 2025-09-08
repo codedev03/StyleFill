@@ -307,6 +307,8 @@ def register_organizer(request):
 @login_required
 def organizer_dashboard(request):
     profile = Profile.objects.get(user=request.user)
+    organizer = Organizer.objects.get(user=request.user)
+    profession = organizer.profession or "Organizer"
     # Find all experiences by this organizer
     my_events = Experience.objects.filter(organizer=request.user)
     # Find bookings for these experiences
@@ -320,6 +322,7 @@ def organizer_dashboard(request):
     upcoming_events = my_events.filter(date__gte=timezone.now())
 
     return render(request, "organizer/odashboard.html", {
+        "profession": profession,
         "platform_fee": platform_fee,
         "total_earnings": total_earnings,
         "total_bookings": total_bookings,

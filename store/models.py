@@ -106,6 +106,7 @@ class Organizer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=200, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    profession = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.user.username

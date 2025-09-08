@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Customer, Product, Order, Profile, ProductImage, NewsletterSubscriber
+from .models import Category, Customer, Product, Order, Profile, ProductImage, NewsletterSubscriber, Organizer
 from django.contrib.auth.models import User
 # Register your models here.
 admin.site.register(Category)
@@ -26,6 +26,10 @@ class ProductImageInline(admin.TabularInline):
 # Custom Product Admin to include ProductImageInline
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline]
+
+@admin.register(Organizer)
+class OrganizerAdmin(admin.ModelAdmin):
+    list_display = ("user", "profession")
 
 # Unregister the default Product admin
 admin.site.unregister(Product)

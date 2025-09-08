@@ -17,4 +17,5 @@ urlpatterns = [
     path('delete-account/', views.delete_account, name='delete_account'),
     path('subscribe/', views.subscribe_newsletter, name='subscribe_newsletter'),
     path('unsubscribe/', views.unsubscribe_newsletter, name='unsubscribe_newsletter'),
+    path('organizer/dashboard/', views.organizer_dashboard, name='organizer_dashboard'),
 ]

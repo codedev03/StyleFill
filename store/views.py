@@ -1,14 +1,17 @@
 from django.shortcuts import render, redirect
-from .models import Product, Category, Profile, ProductImage, Review, NewsletterSubscriber
+from .models import Product, Category, Profile, ProductImage, Review, NewsletterSubscriber, Organizer
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User 
 from django.contrib.auth.forms import UserCreationForm 
-from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm, ReviewForm
+from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm, UserInfoForm, ProfileForm, ReviewForm, OrganizerSignUpForm
 from payment.forms import ShippingForm
 from payment.models import ShippingAddress
-from experiences.models import Experience
+from experiences.models import Experience, Booking
 from django.views.decorators.csrf import csrf_protect
+from django.utils import timezone
+from django.db.models import Sum, Count
 from django import forms
 from django.db.models import Q
 import json
@@ -202,6 +205,17 @@ def login_user(request):
         
         if user is not None:
             login(request, user)
+
+            # ✅ Case 1: Admin
+            if user.is_superuser:
+                messages.success(request, "Welcome Admin!")
+                return redirect("admin_dashboard")
+
+            # ✅ Case 2: Organizer
+            if Organizer.objects.filter(user=user).exists():
+                messages.success(request, "Welcome Organizer!")
+                return redirect("organizer_dashboard")
+            
             # Attempt to retrieve the Profile for the logged-in user
             try:
                 current_user = Profile.objects.get(user=user)
@@ -216,18 +230,19 @@ def login_user(request):
                     # Loop through the cart and add the items from the database
                     for key, value in converted_cart.items():
                         cart.db_add(product=key, quantity=value)
+
+                messages.success(request, "You have been logged in..whoohooo..")
+                return redirect("home")
+
             except Profile.DoesNotExist:
-                # Handle the case where the Profile does not exist
                 messages.error(request, "Profile does not exist. Please complete your profile.")
-                return redirect('create_profile')  # Redirect to a profile creation page or similar
-            
-            messages.success(request, "You have been logged in..whoohooo..")
-            return redirect('home')
+                return redirect("create_profile")
+
         else:
-            messages.error(request, "There is an error, please try again..")
-            return redirect('login_user')
-    else:
-        return render(request, 'login.html', {})
+            messages.error(request, "Invalid username or password")
+            return redirect("login_user")
+
+    return render(request, 'login.html',{})
 
 def logout_user(request):
     logout(request)
@@ -278,3 +293,35 @@ def create_profile(request):
         form = ProfileForm()
     return render(request, 'create_profile.html', {'form': form})
 
+def register_organizer(request):
+    if request.method == "POST":
+        form = OrganizerSignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Organizer registered successfully! Please log in.")
+            return redirect("login_user")
+    else:
+        form = OrganizerSignUpForm()
+    return render(request, "register_organizer.html", {"form": form})
+
+@login_required
+def organizer_dashboard(request):
+    profile = Profile.objects.get(user=request.user)
+    # Find all experiences by this organizer
+    my_events = Experience.objects.filter(organizer=request.user)
+    # Find bookings for these experiences
+    my_bookings = Booking.objects.filter(experience__in=my_events, paid=True)
+    platform_fee = my_bookings.aggregate(total=Sum("platform_fee"))["total"] or 0
+
+    # Calculate totals
+    total_earnings = my_bookings.aggregate(total=Sum("organizer_earning"))["total"] or 0
+    total_bookings = my_bookings.count()
+    # Upcoming events
+    upcoming_events = my_events.filter(date__gte=timezone.now())
+
+    return render(request, "organizer/odashboard.html", {
+        "platform_fee": platform_fee,
+        "total_earnings": total_earnings,
+        "total_bookings": total_bookings,
+        "upcoming_events": upcoming_events,
+    })

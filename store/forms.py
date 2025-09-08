@@ -130,3 +130,17 @@ class ReviewForm(forms.ModelForm):
         widgets = {
             'review_text': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Your Review'}),
         }
+
+class OrganizerSignUpForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password1', 'password2')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+            Profile.objects.create(user=user, role="organizer")
+        return user

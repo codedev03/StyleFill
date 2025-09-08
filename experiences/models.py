@@ -3,7 +3,9 @@ from django.contrib.auth.models import User
 # Create your models here.
 class Experience(models.Model):
     title = models.CharField(max_length=200)
-    organizer_name = models.CharField(max_length=100)
+    # organizer_name = models.CharField(max_length=100)
+    # in Experience model
+    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="experiences")
     description = models.TextField()
     location = models.CharField(max_length=255)
     date = models.DateField()
@@ -30,11 +32,19 @@ class ExperienceVideo(models.Model):
 
 class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    experience = models.ForeignKey(Experience, on_delete=models.CASCADE)
+    experience = models.ForeignKey(Experience, related_name="bookings", on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)
     platform_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     organizer_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def save(self, *args, **kwargs):
+        if self.experience and self.experience.price:
+            # Assuming you have a field in Experience like platform_fee_percent = 10
+            fee_percent = getattr(self.experience, "platform_fee_percent", 10)
+            self.platform_fee = (self.experience.price * fee_percent) / 100
+            self.organizer_earning = self.experience.price - self.platform_fee
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.experience.title}"

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">🎉 Organizer Dashboard</h2>
+
+    <!-- Top Cards -->
+    <div class="row">
+
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Platform Fee Deducted</h5>
+                    <h3>₹ {{ platform_fee|default:"0.00" }}</h3>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Earnings</h5>
+                    <h3>₹ {{ total_earnings|default:"0.00" }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <h3>{{ total_bookings|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-info shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Upcoming Events</h5>
+                    <h3>{{ upcoming_events|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">📅 Upcoming Events</h5>
+        </div>
+        <div class="card-body">
+            {% if upcoming_events %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Bookings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in upcoming_events %}
+                    <tr>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.date|date:"M d, Y" }}</td>
+                        <td>{{ event.location }}</td>
+                        <td>{{ event.bookings.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No upcoming events yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    
+</div>
+{% endblock %}
+
+

@@ -217,7 +217,11 @@ def create_order(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         total_amount = Decimal(data.get('total_amount'))
-        shipping_info = data.get('shipping_info')
+        # ✅ Get shipping info from session
+        shipping_info = request.session.get('my_shipping')
+
+        if not shipping_info:
+            return JsonResponse({'error': 'Shipping info missing in session'}, status=400)
 
         logger.info(f"Creating order with amount: {total_amount} and shipping info: {shipping_info}")
 
@@ -235,7 +239,7 @@ def create_order(request):
             ),
             phone_number=shipping_info.get('shipping_phone'),
             shipping_cost=Decimal(shipping_info.get('cost', '0')),
-            shipping_method=shipping_info.get('method', ''),
+            shipping_method=shipping_info.get('method') or 'standard',
             amount_paid=total_amount,
             payment_completed=False,
             user=request.user if request.user.is_authenticated else None

@@ -141,48 +141,68 @@
                             </div>
                         </div>
                         <br>
-                        <div class="card">
-                            <div class="card-header">
-                                Shipping Info
-                            </div>
-                            <div class="card-body">
-                                <form method="POST" action="{% url 'billing_info' %}">
-                                    {% csrf_token %}
-                                    {{ shipping_form.as_p }}
-                                    {% if billing_phone %}
+                        {% if not is_experience %}
+                            <div class="card">
+                                <div class="card-header">Shipping Info</div>
+                                <div class="card-body">
+                                    <form method="POST" action="{% url 'billing_info' %}">
+                                        {% csrf_token %}
+                                        {{ shipping_form.as_p }}
+                                        {% if billing_phone %}
+                                            <div class="mb-3">
+                                                <label class="form-label" for="shipping_phone">Phone Number:</label>
+                                                <input type="text" class="form-control"  id="shipping_phone" name="shipping_phone" value="{{ billing_phone }}" required>
+                                            </div>
+                                        {% endif %}
+                                        <!-- Shipping Method Selection -->
                                         <div class="mb-3">
-                                            <label class="form-label" for="shipping_phone">Phone Number:</label>
-                                            <input type="text" class="form-control"  id="shipping_phone" name="shipping_phone" value="{{ billing_phone }}" required>
+                                            <label class="form-label">Select Shipping Method:</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="shipping_method" id="standard_shipping" value="standard" data-cost="50" checked>
+                                                <label class="form-check-label" for="standard_shipping">
+                                                    Standard Shipping (₹50)
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="shipping_method" id="express_shipping" value="express" data-cost="100">
+                                                <label class="form-check-label" for="express_shipping">
+                                                    Express Shipping (₹100)
+                                                </label>
+                                            </div>
                                         </div>
-                                    {% endif %}
-                                    <!-- Shipping Method Selection -->
-                                    <div class="mb-3">
-                                        <label class="form-label">Select Shipping Method:</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="shipping_method" id="standard_shipping" value="standard" data-cost="50" checked>
-                                            <label class="form-check-label" for="standard_shipping">
-                                                Standard Shipping (₹50)
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="shipping_method" id="express_shipping" value="express" data-cost="100">
-                                            <label class="form-check-label" for="express_shipping">
-                                                Express Shipping (₹100)
-                                            </label>
-                                        </div>
-                                    </div>
 
-                                    <div id="shipping_cost" class="mb-3">
-                                        <strong>Shipping Cost: ₹<span id="shipping_cost_value">0</span></strong>
-                                    </div>
+                                        <div id="shipping_cost" class="mb-3">
+                                            <strong>Shipping Cost: ₹<span id="shipping_cost_value">0</span></strong>
+                                        </div>
 
-                                    <button type="submit" class="btn btn-secondary">Continue To billing</button>
-                                </form>
+                                        <button type="submit" class="btn btn-secondary">Continue To billing</button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
+                        {% else %}
+                            <div class="card">
+                                <div class="card-header">Booking Info</div>
+                                <div class="card-body">
+                                    <form method="POST" action="{% url 'billing_info' %}">
+                                        {% csrf_token %}
+                                        {{ shipping_form.as_p }}
+                                        {% if billing_phone %}
+                                            <div class="mb-3">
+                                                <label class="form-label" for="shipping_phone">Phone Number:</label>
+                                                <input type="text" class="form-control" id="shipping_phone" name="shipping_phone" value="{{ billing_phone }}" required>
+                                            </div>
+                                        {% endif %}
+                        
+                                        <!-- ❌ no shipping method here -->
+                        
+                                        <button type="submit" class="btn btn-success">Continue To Billing</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                </div>
             </div>
+        </div>
 
 <br><br>
 <br><br>

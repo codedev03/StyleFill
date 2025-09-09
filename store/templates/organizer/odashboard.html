@@ -4,35 +4,35 @@
 {% block content %}
 <style>
     /* Default look */
-.dashboard-header {
-  height: 200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  color: white;
-}
+    .dashboard-header {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: white;
+    }
 
 /* Plant Shop Owner theme */
-.dashboard-header.plant-shop-owner {
-  background: linear-gradient(135deg, #4CAF50, #2E7D32);
-}
+    .dashboard-header.plant-shop-owner {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    }
 
 /* Clay Artist theme */
-.dashboard-header.clay-artist {
-  background: linear-gradient(135deg, #D2691E, #8B4513);
-}
+    .dashboard-header.clay-artist {
+    background: linear-gradient(135deg, #D2691E, #8B4513);
+    }
 
 /* Painter theme */
-.dashboard-header.painter {
-  background: linear-gradient(135deg, #ff7eb9, #ff65a3, #7afcff);
-}
+    .dashboard-header.painter {
+    background: linear-gradient(135deg, #ff7eb9, #ff65a3, #7afcff);
+    }
 
 /* Martial Artist theme */
-.dashboard-header.martial-artist {
-  background: linear-gradient(135deg, #000000, #434343);
-}
+    .dashboard-header.martial-artist {
+    background: linear-gradient(135deg, #000000, #434343);
+    }
 </style>
 
 <!-- 🎨 Profession-Based Header -->
@@ -49,8 +49,7 @@
         <span class="text-4xl">🎉</span>
     {% endif %}
 
-    <header class="profession-header"
-        style="background: {{ style.background }}; color: {{ style.color }}; padding: 50px; text-align: center;">
+    <header class="profession-header" style="background: {{ style.background }}; color: {{ style.color }}; padding: 50px; text-align: center;">
     
         <h1 class="mt-2">Welcome, {{ profession }}</h1>
         <h4 class="mt-2">Your dashboard 🌟</h4>

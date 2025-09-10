@@ -239,7 +239,9 @@ def create_order(request):
             ),
             phone_number=shipping_info.get('shipping_phone'),
             shipping_cost=Decimal(shipping_info.get('cost', '0')),
-            shipping_method=shipping_info.get('method') or 'standard',
+            shipping_method=(
+                'no_shipping' if request.session.get('is_experience') else shipping_info.get('method', 'standard')
+            ),
             amount_paid=total_amount,
             payment_completed=False,
             user=request.user if request.user.is_authenticated else None

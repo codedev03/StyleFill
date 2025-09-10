@@ -34,6 +34,11 @@ post_save.connect(create_shipping, sender=User)
 
 # Create Order model
 class Order(models.Model):
+    SHIPPING_CHOICES = [
+        ('standard', 'Standard'),
+        ('express', 'Express'),
+        ('no_shipping', 'No Shipping (Experience)'),
+    ]
     STATUS_CHOICES = [
         ('processing', 'Processing'),
         ('shipped', 'Shipped'),

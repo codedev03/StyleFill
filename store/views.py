@@ -221,15 +221,16 @@ def login_user(request):
                 current_user = Profile.objects.get(user=user)
                 # Get their saved cart from the database
                 saved_cart = current_user.old_cart
+                cart = Cart(request)
                 # Convert database string to Python dictionary
-                if saved_cart:
-                    # Convert to dictionary using JSON
-                    converted_cart = json.loads(saved_cart)
-                    # Add the loaded cart dictionary
-                    cart = Cart(request)
-                    # Loop through the cart and add the items from the database
-                    for key, value in converted_cart.items():
-                        cart.db_add(product=key, quantity=value)
+                if saved_cart and saved_cart.strip(): # make sure it's not empty
+                    try:
+                        converted_cart = json.loads(saved_cart)
+                        for key, value in converted_cart.items():
+                            cart.db_add(product=key, quantity=value)
+                    except json.JSONDecodeError:
+                        # fallback if data in DB is corrupted or invalid
+                        converted_cart = {}
 
                 messages.success(request, "You have been logged in..whoohooo..")
                 return redirect("home")

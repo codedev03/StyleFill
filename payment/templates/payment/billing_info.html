@@ -113,6 +113,7 @@
                             </div>
                         </div>
                         <br>
+                        {% if not experience_booking %}
                         <div class="card">
                             <div class="card-header">
                                 Shipping Info
@@ -130,9 +131,10 @@
                                 <br>
                                 <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping</a>
                             </div>
-                          </div>
-                          <br>
-                          <div class="card">
+                        </div>
+                        <br>
+                        {% endif %}
+                        <div class="card">
                             <div class="card-header">
                                 Payment Info
                             </div>

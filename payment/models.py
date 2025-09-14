@@ -99,3 +99,25 @@ class OrderItem(models.Model):
     note_for_seller = models.TextField(blank=True, null=True)
     def __str__(self):
         return f'Order Item - {str(self.id)}'
+    
+class Payment(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_id = models.CharField(max_length=100, null=True, blank=True)  # Razorpay/Stripe ID
+    paid_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.id} - {self.amount}"
+    
+# ✅ Create Payment automatically when an order is delivered and paid
+@receiver(post_save, sender=Order)
+def create_payment_record(sender, instance, created, **kwargs):
+    if instance.status == 'delivered' and instance.payment_completed:
+        if not Payment.objects.filter(order=instance).exists():
+            Payment.objects.create(
+                order=instance,
+                user=instance.user,
+                amount=instance.amount_paid,
+                payment_id=instance.payment_id
+            )

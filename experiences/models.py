@@ -37,13 +37,15 @@ class Booking(models.Model):
     paid = models.BooleanField(default=False)
     platform_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     organizer_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    quantity = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
         if self.experience and self.experience.price:
             # Assuming you have a field in Experience like platform_fee_percent = 10
             fee_percent = getattr(self.experience, "platform_fee_percent", 10)
-            self.platform_fee = (self.experience.price * fee_percent) / 100
-            self.organizer_earning = self.experience.price - self.platform_fee
+            total_price = self.experience.price * self.quantity
+            self.platform_fee = (total_price * fee_percent) / 100
+            self.organizer_earning = total_price - self.platform_fee
         super().save(*args, **kwargs)
 
     def __str__(self):

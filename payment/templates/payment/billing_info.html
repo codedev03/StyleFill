@@ -74,7 +74,11 @@
                             </div>
                             <div class="card-body">
                                 {% if experience_booking %}
-                                    <p>{{ experience_booking.title }}: ₹{{ experience_booking.price }}</p>
+                                    <p>{{ experience_booking.title }}: 
+                                        ₹{{ experience_booking.price }} × {{ experience_booking.quantity }} 
+                                        = ₹{{ totals }}
+                                    </p>
+                                    <p>Tickets: {{ experience_booking.quantity }}</p>
                                     <p>Date: {{ experience_booking.date }} {{ experience_booking.time }}</p>
                                     <p>Location: {{ experience_booking.location }}</p>
                                 {% else %}
@@ -144,7 +148,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+        </div>
 
 <br><br>
 <br><br>
@@ -191,9 +195,9 @@
                         window.location.href = "{% url 'payments_success' %}?payment_id=" + response.razorpay_payment_id; // Update with your success URL
                     },
                     "prefill": {
-                        "name": "{{ shipping_info.shipping_full_name }}",
-                        "email": "{{ shipping_info.shipping_email }}",
-                        "contact": "{{ shipping_info.shipping_phone }}" // Add phone if available
+                        "name": "{% if shipping_info %}{{ shipping_info.shipping_full_name }}{% else %}Guest{% endif %}",
+                        "email": "{% if shipping_info %}{{ shipping_info.shipping_email }}{% else %}guest@example.com{% endif %}",
+                        "contact": "{% if shipping_info %}{{ shipping_info.shipping_phone }}{% else %}0000000000{% endif %}"
                     },
                     "theme": {
                         "color": "#F37254"

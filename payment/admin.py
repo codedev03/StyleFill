@@ -19,6 +19,10 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     list_display = ('id', 'user', 'status', 'amount_paid', 'date_ordered')
     list_filter = ('status',)
+
+    # either show ALL fields dynamically:
+    def get_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
 #Unregister Order model
 admin.site.unregister(Order)
 

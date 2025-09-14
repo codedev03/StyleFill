@@ -11,7 +11,7 @@ from django.core.files.images import get_image_dimensions
 from email.mime.image import MIMEImage
 from cart.cart import Cart
 from payment.forms import ShippingForm
-from payment.models import ShippingAddress, Order, OrderItem
+from payment.models import ShippingAddress, Order, OrderItem, Payment
 from experiences.models import Experience, Booking
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -55,7 +55,27 @@ def admin_dashboard(request):
     subscribers = NewsletterSubscriber.objects.all()
     feedback_count = Review.objects.count()
     average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
-    total_revenue = Order.objects.aggregate(total=Sum('amount_paid'))['total']
+    # ✅ Product revenue (delivered orders)
+    product_revenue = (
+        Order.objects.filter(status="delivered")
+        .aggregate(total=Sum('amount_paid'))['total'] or 0
+    )
+
+    # ✅ Event revenue (platform fees from paid bookings)
+    event_revenue = (
+        Booking.objects.filter(paid=True)
+        .aggregate(total=Sum('platform_fee'))['total'] or 0
+    )
+
+    # ✅ Current = products + events
+    current_revenue = product_revenue + event_revenue
+
+    # ✅ All-time revenue (from Payment + event fees)
+    all_time_product_revenue = (
+        Payment.objects.aggregate(total=Sum('amount'))['total'] or 0
+    )
+    all_time_event_revenue = event_revenue  # you can later create a Payment record for events too
+    all_time_revenue = all_time_product_revenue + all_time_event_revenue
     recent_orders = Order.objects.select_related("user").prefetch_related("items__product").order_by('-date_ordered')[:10]
     recent_bookings = Booking.objects.select_related("user", "experience").order_by('-booking_date')[:10]
     
@@ -66,7 +86,10 @@ def admin_dashboard(request):
         "pending_orders": pending_orders,
         "feedback_count": feedback_count,
         "average_rating": round(average_rating or 0, 1),
-        "total_revenue": total_revenue or 0,
+        "current_revenue": current_revenue,
+        "all_time_revenue": all_time_revenue,
+        "product_revenue": product_revenue,
+        "event_revenue": event_revenue,
         "now": timezone.now(),
         "greeting": get_greeting(),
         "subscribers": subscribers,
@@ -280,8 +303,15 @@ def billing_info(request):
 
     if request.method == 'POST':
         shipping_method = request.POST.get('shipping_method')
-        shipping_cost = 0 if experience_booking else (50 if shipping_method == 'standard' else 100)
-        total_amount = (Decimal(experience_booking['price']) if experience_booking else totals) + shipping_cost
+        if experience_booking:
+            quantity = int(experience_booking.get("quantity", 1))
+            subtotal = Decimal(experience_booking["price"]) * quantity
+            shipping_cost = 0  # no shipping for experience
+            total_amount = subtotal
+        else:
+            shipping_cost = 50 if shipping_method == "standard" else 100
+            subtotal = totals
+            total_amount = subtotal + shipping_cost
 
         # Create shipping info dict
         my_shipping = {
@@ -304,7 +334,7 @@ def billing_info(request):
             "experience_booking": experience_booking,
             "cart_products": cart_products,
             "quantities": quantities,
-            "totals": totals if not experience_booking else experience_booking['price'],
+            "totals": totals if not experience_booking else subtotal,
             "shipping_info": my_shipping,
             "total_amount": total_amount,
             "razorpay_merchant_key": settings.RAZORPAY_KEY_ID
@@ -316,14 +346,20 @@ def billing_info(request):
         return redirect('checkout')
 
     shipping_info = request.session['my_shipping']
-    total_amount = (Decimal(experience_booking['price']) if experience_booking else totals) + \
-                   (0 if experience_booking else (50 if shipping_info.get('method') == 'standard' else 100))
+    if experience_booking:
+        quantity = int(experience_booking.get("quantity", 1))
+        subtotal = Decimal(experience_booking["price"]) * quantity
+        total_amount = subtotal
+    else:
+        shipping_cost = 50 if shipping_info.get('method') == 'standard' else 100
+        subtotal = totals
+        total_amount = subtotal + shipping_cost
 
     return render(request, "payment/billing_info.html", {
         "experience_booking": experience_booking,
         "cart_products": cart_products,
         "quantities": quantities,
-        "totals": totals if not experience_booking else experience_booking['price'],
+        "totals": subtotal,
         "shipping_info": shipping_info,
         "total_amount": total_amount,
         "razorpay_merchant_key": settings.RAZORPAY_KEY_ID
@@ -530,10 +566,12 @@ def checkout(request, product_id=None, experience_id=None):
     if request.method == 'POST' and request.POST.get('is_experience') == 'true':
         experience_id = request.POST.get('experience_id')
         experience = Experience.objects.get(id=experience_id)
+        quantity = int(request.POST.get("quantity", 1))
         # ✅ Create the booking in DB so payment_success can update it
         booking = Booking.objects.create(
             user=request.user,
             experience=experience,
+            quantity=quantity,
             paid=False  # Will be updated in payments_success
         )
 
@@ -551,22 +589,23 @@ def checkout(request, product_id=None, experience_id=None):
                 phone_number = None
         else:
             shipping_form = ShippingForm(request.POST or None)
-
+        
         # Store in session for billing page
         request.session['experience_booking'] = {
             'id': experience.id,
             'title': experience.title,
-            'price': str(experience.price),
+            'price': float(experience.price),
             'date': str(experience.date),
             'time': str(experience.time),
-            'location': experience.location
+            'location': experience.location,
+            'quantity': int(quantity)
         }
 
         # Render checkout with *only this experience*
         return render(request, "payment/checkout.html", {
             "experience": experience,
             "title": experience.title,
-            "totals": float(experience.price),  # price instead of cart total
+            "totals": float(experience.price) * quantity,  # ✅ multiply by quantity,  # price instead of cart total
             "shipping_form": shipping_form,
             "billing_phone": phone_number,
             "is_experience": True

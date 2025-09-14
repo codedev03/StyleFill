@@ -57,12 +57,35 @@
             </div>
         </div>
 
-        <div class="col-md-12">
+        <div class="col-md-4">
             <div class="card shadow text-center p-4">
-                <h5>Total Revenue Collected</h5>
-                <h2 class="text-success">₹{{ total_revenue }}</h2>
+                <h5>Product Revenue</h5>
+                <h2 class="text-primary">₹{{ product_revenue }}</h2>
             </div>
         </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow text-center p-4">
+                <h5>Event Revenue (Platform Fees)</h5>
+                <h2 class="text-warning">₹{{ event_revenue }}</h2>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow text-center p-4">
+                <h5>Total Revenue (Products + Events)</h5>
+                <h2 class="text-success">₹{{ current_revenue }}</h2>
+            </div>
+        </div>
+        
+        <div class="col-md-12 mt-4">
+            <div class="card shadow text-center p-4">
+                <h5>All-Time Revenue</h5>
+                <h2 class="text-dark">₹{{ all_time_revenue }}</h2>
+            </div>
+        </div>
+        
+
 
         <div class="col-md-12">
             <div class="card shadow p-4">
@@ -140,7 +163,7 @@
                     </tr>
                     {% for booking in recent_bookings %}
                     <tr>
-                        <td>{{ booking.user.username }}</td>
+                        <td>{{ booking.user.get_full_name }}</td>
                         <td>{{ booking.experience.title }}</td>
                         <td>{{ booking.paid|yesno:"Yes,No" }}</td>
                         <td>{{ booking.booking_date }}</td>

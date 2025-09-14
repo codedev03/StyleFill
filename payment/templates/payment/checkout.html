@@ -185,13 +185,38 @@
                                 <div class="card-body">
                                     <form method="POST" action="{% url 'billing_info' %}">
                                         {% csrf_token %}
-                                        {{ shipping_form.as_p }}
-                                        {% if billing_phone %}
-                                            <div class="mb-3">
-                                                <label class="form-label" for="shipping_phone">Phone Number:</label>
-                                                <input type="text" class="form-control" id="shipping_phone" name="shipping_phone" value="{{ billing_phone }}" required>
-                                            </div>
-                                        {% endif %}
+                                        <!-- Prefill logged-in user info -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Full Name:</label>
+                                            <input type="text" class="form-control" 
+                                                name="name" 
+                                                value="{{ request.user.get_full_name }}" 
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Email:</label>
+                                            <input type="email" class="form-control" 
+                                                name="email" 
+                                                value="{{ request.user.email }}" 
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Phone Number:</label>
+                                            <input type="text" class="form-control" 
+                                                name="phone" 
+                                                value="{{ request.user.profile.phone|default:'' }}" 
+                                                required>
+                                        </div>
+
+                                        <!-- Ticket Quantity -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Number of Tickets:</label>
+                                            <input type="number" class="form-control" 
+                                                name="quantity" min="1" value="1" required>
+                                        </div>
+
                         
                                         <!-- ❌ no shipping method here -->
                         

@@ -49,26 +49,27 @@ def delete_booking(request, booking_id):
 @login_required
 def admin_dashboard(request):
     customer_count = User.objects.filter(is_superuser=False).count()
-    order_count = Order.objects.count()
-    completed_orders = Order.objects.filter(status='delivered').count()
-    pending_orders = Order.objects.exclude(status='delivered').count()
+    product_orders = Order.objects.all()
+    order_count = product_orders.count()
+    completed_orders = product_orders.filter(status='delivered').count()
+    pending_orders = product_orders.exclude(status='delivered').count()
     subscribers = NewsletterSubscriber.objects.all()
     feedback_count = Review.objects.count()
-    average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating']
+    average_rating = Review.objects.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
     # ✅ Product revenue (delivered orders)
-    product_revenue = (
-        Order.objects.filter(status="delivered")
-        .aggregate(total=Sum('amount_paid'))['total'] or 0
-    )
+    product_revenue = product_orders.filter(status='delivered').aggregate(total=Sum('amount_paid'))['total'] or 0
+
+    # Event bookings stats
+    # ------------------------
+    all_bookings = Booking.objects.all()
+    event_bookings_count = all_bookings.count()
+    event_paid_count = all_bookings.filter(paid=True).count()
+    event_pending_count = all_bookings.filter(paid=False).count()
 
     # ✅ Event revenue (platform fees from paid bookings)
-    event_revenue = (
-        Booking.objects.filter(paid=True)
-        .aggregate(total=Sum('platform_fee'))['total'] or 0
-    )
+    event_revenue = all_bookings.filter(paid=True).aggregate(total=Sum('platform_fee'))['total'] or 0
 
-    # ✅ Current = products + events
-    current_revenue = product_revenue + event_revenue
+    
 
     # ✅ All-time revenue (from Payment + event fees)
     all_time_product_revenue = (
@@ -76,8 +77,10 @@ def admin_dashboard(request):
     )
     all_time_event_revenue = event_revenue  # you can later create a Payment record for events too
     all_time_revenue = all_time_product_revenue + all_time_event_revenue
-    recent_orders = Order.objects.select_related("user").prefetch_related("items__product").order_by('-date_ordered')[:10]
-    recent_bookings = Booking.objects.select_related("user", "experience").order_by('-booking_date')[:10]
+    # ✅ Current = products + events
+    current_revenue = product_revenue + event_revenue
+    recent_orders = product_orders.select_related("user").prefetch_related("items__product").order_by('-date_ordered')[:10]
+    recent_bookings = all_bookings.select_related("user", "experience").order_by('-booking_date')[:10]
     
     context = {
         "customer_count": customer_count,
@@ -89,6 +92,10 @@ def admin_dashboard(request):
         "current_revenue": current_revenue,
         "all_time_revenue": all_time_revenue,
         "product_revenue": product_revenue,
+        # Event bookings
+        "event_bookings_count": event_bookings_count,
+        "event_paid_count": event_paid_count,
+        "event_pending_count": event_pending_count,
         "event_revenue": event_revenue,
         "now": timezone.now(),
         "greeting": get_greeting(),
@@ -300,33 +307,69 @@ def billing_info(request):
 
     # Always define this at the start
     experience_booking = request.session.get('experience_booking')
+    # Ensure the experience booking session is still valid
+    if experience_booking:
+        booking_id = request.session.get("booking_id")
+        if not Booking.objects.filter(id=booking_id, user=request.user, paid=False).exists():
+            experience_booking = None
+            request.session.pop('experience_booking', None)
+            request.session.pop('is_experience', None)
+            request.session.pop('booking_id', None)
 
     if request.method == 'POST':
         shipping_method = request.POST.get('shipping_method')
+        quantity = int(request.POST.get("quantity", 1))
         if experience_booking:
-            quantity = int(experience_booking.get("quantity", 1))
+            # ✅ update session with new quantity
+            experience_booking["quantity"] = quantity
+            request.session['experience_booking'] = experience_booking 
+            # quantity = int(experience_booking.get("quantity", 1))
             subtotal = Decimal(experience_booking["price"]) * quantity
-            shipping_cost = 0  # no shipping for experience
+            # shipping_cost = 0  # no shipping for experience
             total_amount = subtotal
+
+            # --- UPDATE DB BOOKING ---
+            booking_id = request.session.get('booking_id')
+            if booking_id:
+                booking = Booking.objects.get(id=booking_id)
+                booking.quantity = quantity
+                booking.save() 
+
+            # Build shipping info from the *experience form fields*
+            my_shipping = {
+                'method': 'no_shipping',
+                'cost': 0,
+                'shipping_full_name': request.POST.get('name') or request.user.get_full_name(),
+                'shipping_email': request.POST.get('email') or request.user.email,
+                'shipping_phone': request.POST.get('phone') or getattr(request.user.profile, "phone", ""),
+                'shipping_address1': None,
+                'shipping_address2': None,
+                'shipping_city': None,
+                'shipping_state': None,
+                'shipping_zipcode': None,
+                'shipping_country': None,
+            }
         else:
+            # ✅ Normal cart checkout
             shipping_cost = 50 if shipping_method == "standard" else 100
             subtotal = totals
             total_amount = subtotal + shipping_cost
 
-        # Create shipping info dict
-        my_shipping = {
-            'method': shipping_method,
-            'cost': shipping_cost,
-            'shipping_full_name': request.POST.get('shipping_full_name'),
-            'shipping_email': request.POST.get('shipping_email'),
-            'shipping_phone': request.POST.get('shipping_phone'),
-            'shipping_address1': request.POST.get('shipping_address1'),
-            'shipping_address2': request.POST.get('shipping_address2'),
-            'shipping_city': request.POST.get('shipping_city'),
-            'shipping_state': request.POST.get('shipping_state'),
-            'shipping_zipcode': request.POST.get('shipping_zipcode'),
-            'shipping_country': request.POST.get('shipping_country'),
-        }
+            # Create shipping info dict
+            my_shipping = {
+                'method': shipping_method,
+                'cost': shipping_cost,
+                'shipping_full_name': request.POST.get('shipping_full_name'),
+                'shipping_email': request.POST.get('shipping_email'),
+                'shipping_phone': request.POST.get('shipping_phone'),
+                'shipping_address1': request.POST.get('shipping_address1'),
+                'shipping_address2': request.POST.get('shipping_address2'),
+                'shipping_city': request.POST.get('shipping_city'),
+                'shipping_state': request.POST.get('shipping_state'),
+                'shipping_zipcode': request.POST.get('shipping_zipcode'),
+                'shipping_country': request.POST.get('shipping_country'),
+            }
+        # ✅ Save session once
         request.session['my_shipping'] = my_shipping
         request.session['total_amount'] = str(total_amount)
 
@@ -381,14 +424,29 @@ def payments_success(request):
         booking.payment_id = payment_id
         booking.paid = True
         # 💰 Calculate platform fee and earning
-        price = experience.price
-        fee_percent = experience.platform_fee_percent
-        platform_fee = (price * fee_percent) / Decimal(100)
-        organizer_earning = price - platform_fee
+        total_price = booking.experience.price * booking.quantity
+        fee_percent = booking.experience.platform_fee_percent
+        platform_fee = (total_price * fee_percent) / Decimal(100)
+        organizer_earning = total_price - platform_fee
 
         booking.platform_fee = platform_fee
         booking.organizer_earning = organizer_earning
         booking.save()
+
+        # ✅ Update corresponding Order (if it exists)
+        try:
+            order = Order.objects.get(
+                user=request.user,
+                shipping_method="no_shipping",
+                status="processing",
+                payment_completed=False
+            )
+            order.payment_completed = True
+            order.status = "delivered"
+            order.payment_id = payment_id
+            order.save()
+        except Order.DoesNotExist:
+            pass
         
         # ✅ Send confirmation email for the experience ticket
         subject = f"🎟️ Booking Confirmed – {booking.experience.title}"
@@ -410,6 +468,7 @@ def payments_success(request):
         # Clear session keys to avoid accidental reuse
         request.session.pop("is_experience", None)
         request.session.pop("booking_id", None)
+        request.session.pop("experience_booking", None)  # <--- ADD THIS
 
         return render(request, "payment/payment_success.html", {
             "is_experience": True,
@@ -436,40 +495,6 @@ def payments_success(request):
         order.note_for_seller = note_for_seller
 
 
-    # # 2️⃣ Else: normal product order flow
-    # shipping_info = request.session.get('shipping_info')
-    # if not shipping_info:
-    #     logger.warning("No shipping info found in session during product payment success.")
-    #     messages.error(request, "Shipping info not found.")
-    #     return redirect('home')
-    # total_amount = Decimal(request.session.get('total_amount', '0'))
-    # logger.info(f"Payment successful with ID: {payment_id}")
-    # logger.debug(f"Shipping info in session: {shipping_info}")
-    # logger.info(f"Shipping cost saved in order: {shipping_info.get('cost')}")
-
-    # order_id = request.session.get('latest_order_id')
-
-    # if not order_id:
-    #     logger.warning("No order ID found in session during payment success.")
-    #     messages.error(request, "Something went wrong. No order found.")
-    #     return redirect('home')
-
-    # # Create Order
-    # order_data = {
-    #     "full_name": shipping_info['shipping_full_name'],
-    #     "email": shipping_info['shipping_email'],
-    #     "shipping_address": f"{shipping_info['shipping_address1']}\n{shipping_info['shipping_address2']}\n{shipping_info['shipping_city']}\n{shipping_info['shipping_state']}\n{shipping_info['shipping_zipcode']}\n{shipping_info['shipping_country']}",
-    #     "phone_number": shipping_info.get('shipping_phone'),
-    #     "shipping_cost": Decimal(shipping_info.get('cost', '0')),
-    #     "shipping_method": shipping_info.get('method', ''),
-    #     "amount_paid": total_amount,
-    #     "payment_completed": True,
-    #     "payment_id": payment_id
-    # }
-    # if request.user.is_authenticated:
-    #     order_data['user'] = request.user
-
-    # order = Order.objects.create(**order_data)
     # Create OrderItems If order items are not yet created (guest checkout scenario), pull from cart
     order_items = OrderItem.objects.filter(order=order)
     if not order_items.exists():
@@ -603,9 +628,10 @@ def checkout(request, product_id=None, experience_id=None):
 
         # Render checkout with *only this experience*
         return render(request, "payment/checkout.html", {
+            "experience_booking": booking,
             "experience": experience,
             "title": experience.title,
-            "totals": float(experience.price) * quantity,  # ✅ multiply by quantity,  # price instead of cart total
+            "totals": booking.total_price,  # ✅ booking already calculates total
             "shipping_form": shipping_form,
             "billing_phone": phone_number,
             "is_experience": True

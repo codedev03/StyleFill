@@ -16,6 +16,7 @@ from django import forms
 from django.db.models import Q
 import json
 from cart.cart import Cart
+from collections import defaultdict
 # Create your views here.
 @csrf_protect
 def delete_account(request):
@@ -310,17 +311,27 @@ def organizer_dashboard(request):
     profile = Profile.objects.get(user=request.user)
     organizer = Organizer.objects.get(user=request.user)
     profession = organizer.profession or "Organizer"
-    # Find all experiences by this organizer
-    my_events = Experience.objects.filter(organizer=request.user)
-    # Find bookings for these experiences
-    my_bookings = Booking.objects.filter(experience__in=my_events, paid=True)
-    platform_fee = my_bookings.aggregate(total=Sum("platform_fee"))["total"] or 0
 
-    # Calculate totals
+    # All events by this organizer
+    my_events = Experience.objects.filter(organizer=request.user)
+    upcoming_events = my_events.filter(date__gte=timezone.now())
+
+    # Bookings
+    my_bookings = Booking.objects.filter(
+        experience__in=my_events, paid=True
+    ).select_related('user', 'experience')
+
+    platform_fee = my_bookings.aggregate(total=Sum("platform_fee"))["total"] or 0
     total_earnings = my_bookings.aggregate(total=Sum("organizer_earning"))["total"] or 0
     total_bookings = my_bookings.count()
-    # Upcoming events
-    upcoming_events = my_events.filter(date__gte=timezone.now())
+
+    # Group bookings by event (key = Experience object)
+    bookings_by_event = defaultdict(list)
+    for booking in my_bookings:
+        bookings_by_event[booking.experience].append(booking)
+
+    # Convert to list of tuples so Django template can iterate
+    bookings_by_event_list = [(event, bookings) for event, bookings in bookings_by_event.items()]
 
     return render(request, "organizer/odashboard.html", {
         "profession": profession,
@@ -328,4 +339,5 @@ def organizer_dashboard(request):
         "total_earnings": total_earnings,
         "total_bookings": total_bookings,
         "upcoming_events": upcoming_events,
+        "bookings_by_event": bookings_by_event_list,
     })

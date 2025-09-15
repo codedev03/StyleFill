@@ -48,5 +48,9 @@ class Booking(models.Model):
             self.organizer_earning = total_price - self.platform_fee
         super().save(*args, **kwargs)
 
+    @property
+    def total_price(self):
+        return self.experience.price * self.quantity
+
     def __str__(self):
         return f"{self.user.username} - {self.experience.title}"

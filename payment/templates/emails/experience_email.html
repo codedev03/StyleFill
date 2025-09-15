@@ -95,13 +95,14 @@
         Hi {{ user.first_name }} 🌸
     </div>
     <div class="card-body">
-        <h2>{{ experience.title }}</h2>
+        <h2>{{ booking.experience.title }}</h2>
         <div class="details">
-            <p><span class="highlight">📅 Date:</span> {{ experience.date }}</p>
-            <p><span class="highlight">⏰ Time:</span> {{ experience.time }}</p>
-            <p><span class="highlight">📍 Place:</span> {{ experience.location }}</p>
-            <p><span class="highlight">🎤 Conductor:</span> {{ experience.organizer }}</p>
-            <p><span class="highlight">💰 Price Paid:</span> ₹{{ experience.price }}</p>
+            <p><span class="highlight">📅 Date:</span> {{ booking.experience.date }}</p>
+            <p><span class="highlight">⏰ Time:</span> {{ booking.experience.time }}</p>
+            <p><span class="highlight">📍 Place:</span> {{ booking.experience.location }}</p>
+            <p><span class="highlight">🎤 Conductor:</span> {{ booking.experience.organizer }}</p>
+            <p><span class="highlight">🎟 Tickets:</span> {{ booking.quantity }}</p>
+            <p><span class="highlight">💰 Price Paid:</span> ₹{{ booking.experience.price }} × {{ booking.quantity }} = ₹{{ booking.total_price }}</p>
         </div>
         <p style="text-align:center;">We can’t wait to see you! Please arrive 15 minutes early 🌷</p>
     </div>

@@ -434,19 +434,16 @@ def payments_success(request):
         booking.save()
 
         # ✅ Update corresponding Order (if it exists)
-        try:
-            order = Order.objects.get(
-                user=request.user,
-                shipping_method="no_shipping",
-                status="processing",
-                payment_completed=False
-            )
-            order.payment_completed = True
-            order.status = "delivered"
-            order.payment_id = payment_id
-            order.save()
-        except Order.DoesNotExist:
-            pass
+        Order.objects.filter(
+            user=request.user,
+            shipping_method="no_shipping",
+            status="processing",
+            payment_completed=False
+        ).update(
+            payment_completed=True,
+            status="delivered",
+            payment_id=payment_id
+        )
         
         # ✅ Send confirmation email for the experience ticket
         subject = f"🎟️ Booking Confirmed – {booking.experience.title}"

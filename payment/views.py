@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404 , redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 from django.http import JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
 #email
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -28,6 +29,25 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
+@staff_member_required
+def refund_requests(request):
+    bookings = Booking.objects.filter(refund_requested=True)
+    return render(request, "payment/refund_requests.html", {"bookings": bookings})
+
+@staff_member_required
+def approve_refund(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.approve_refund()  # method in Booking model
+    messages.success(request, f"Refund approved for {booking.user.username}.")
+    return redirect("refund_requests")
+
+@staff_member_required
+def reject_refund(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.reject_refund()
+    messages.warning(request, f"Refund rejected for {booking.user.username}.")
+    return redirect("refund_requests")
+
 def get_greeting():
     now = timezone.localtime()
     hour = now.hour

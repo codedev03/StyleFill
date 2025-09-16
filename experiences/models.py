@@ -37,6 +37,11 @@ class Booking(models.Model):
         ("CANCELED", "Canceled"),
         ("REFUNDED", "Refunded"),
     ]
+    REFUND_STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("APPROVED", "Approved"),
+        ("REJECTED", "Rejected"),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     experience = models.ForeignKey(Experience, related_name="bookings", on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
@@ -46,6 +51,24 @@ class Booking(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     booking_code = models.CharField(max_length=12, unique=True, blank=True)
     booking_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="BOOKED")
+    refund_requested = models.BooleanField(default=False)
+    refund_status = models.CharField(max_length=20, choices=REFUND_STATUS_CHOICES, default="PENDING")
+
+    # add helper
+    def request_refund(self):
+        self.booking_status = "CANCELED"
+        self.refund_requested = True
+        self.refund_status = "PENDING"
+        self.save()
+
+    def approve_refund(self):
+        self.booking_status = "REFUNDED"
+        self.refund_status = "APPROVED"
+        self.save()
+
+    def reject_refund(self):
+        self.refund_status = "REJECTED"
+        self.save()
 
     def save(self, *args, **kwargs):
         if not self.booking_code:

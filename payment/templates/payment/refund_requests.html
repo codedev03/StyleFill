@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Refund Requests{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div style="background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600;">
+        💳 Refund Requests
+    </h1>
+</div>
+
+{% if bookings %}
+<table class="admin-table" style="width:100%; border-collapse:collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <thead>
+        <tr style="background:#f5f5f5;">
+            <th style="padding:10px; border:1px solid #ddd;">User</th>
+            <th style="padding:10px; border:1px solid #ddd;">Experience</th>
+            <th style="padding:10px; border:1px solid #ddd;">Booking Date</th>
+            <th style="padding:10px; border:1px solid #ddd;">Status</th>
+            <th style="padding:10px; border:1px solid #ddd;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking in bookings %}
+        <tr>
+            <td style="padding:10px; border:1px solid #ddd;">{{ booking.user.username }}</td>
+            <td style="padding:10px; border:1px solid #ddd;">{{ booking.experience.title }}</td>
+            <td style="padding:10px; border:1px solid #ddd;">{{ booking.booking_date|date:"Y-m-d H:i" }}</td>
+            <td style="padding:10px; border:1px solid #ddd;">{{ booking.booking_status }}</td>
+            <td style="padding:10px; border:1px solid #ddd;">
+                <a href="{% url 'approve_refund' booking.id %}" 
+                    style="background:#28a745; color:white; padding:6px 12px; border-radius:4px; text-decoration:none; margin-right:5px;">
+                    ✅ Approve
+                </a>
+                <a href="{% url 'reject_refund' booking.id %}" 
+                    style="background:#dc3545; color:white; padding:6px 12px; border-radius:4px; text-decoration:none;">
+                    ❌ Reject
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No refund requests pending 🎉</p>
+{% endif %}
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+{% endblock %}

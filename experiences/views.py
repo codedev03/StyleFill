@@ -24,12 +24,13 @@ def my_tickets(request):
 
 
 @login_required
-def cancel_booking(request, booking_id):
+def request_refund(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
-    if booking.booking_status == "CONFIRMED":
-        booking.booking_status = "REFUNDED"  # or "CANCELLED" first → then admin processes refund
-        booking.save()
-        messages.success(request, "Your refund request has been submitted.")
+
+    if booking.booking_status == "BOOKED" and not booking.refund_requested:
+        booking.request_refund()
+        messages.success(request, "Your refund request has been submitted. 💖")
     else:
-        messages.warning(request, "This booking cannot be cancelled.")
+        messages.warning(request, "This booking cannot be cancelled or is already under review.")
+
     return redirect('my_tickets')

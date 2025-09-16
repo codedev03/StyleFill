@@ -23,12 +23,16 @@
 
     <div class="ticket-footer">
         <p class="watermark">😍 StyleFill (❁´◡`❁)</p>
-        {% if booking.booking_status == "CONFIRMED" %}
-        <form method="post" action="{% url 'cancel_booking' booking.id %}">
-            {% csrf_token %}
-            <button type="submit" class="cancel-btn">Cancel & Refund 💔</button>
-        </form>
+    
+        {% if booking.booking_status == "BOOKED" and not booking.refund_requested %}
+            <form method="post" action="{% url 'request_refund' booking.id %}">
+                {% csrf_token %}
+                <button type="submit" class="cancel-btn">Cancel & Apply Refund 💔</button>
+            </form>
+        {% elif booking.refund_requested %}
+            <p class="refund-status">Refund status: {{ booking.refund_status }}</p>
         {% endif %}
+    
         <button class="download-btn" onclick="downloadTicket({{ booking.id }})">💾 Save Ticket</button>
     </div>
     </div>

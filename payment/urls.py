@@ -13,4 +13,7 @@ urlpatterns = [
     path('create-order/', views.create_order, name='create_order'),
     path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
     path('delete-booking/<int:booking_id>/', views.delete_booking, name='delete_booking'),
+    path("refund-requests/", views.refund_requests, name="refund_requests"),
+    path("refund-requests/<int:booking_id>/approve/", views.approve_refund, name="approve_refund"),
+    path("refund-requests/<int:booking_id>/reject/", views.reject_refund, name="reject_refund"),
 ]

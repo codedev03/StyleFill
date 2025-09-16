@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
@@ -31,6 +32,11 @@ class ExperienceVideo(models.Model):
         return f"Video for {self.experience.title}"
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ("BOOKED", "Booked"),
+        ("CANCELED", "Canceled"),
+        ("REFUNDED", "Refunded"),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     experience = models.ForeignKey(Experience, related_name="bookings", on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
@@ -38,8 +44,12 @@ class Booking(models.Model):
     platform_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     organizer_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     quantity = models.PositiveIntegerField(default=1)
+    booking_code = models.CharField(max_length=12, unique=True, blank=True)
+    booking_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="BOOKED")
 
     def save(self, *args, **kwargs):
+        if not self.booking_code:
+            self.booking_code = str(uuid.uuid4()).split("-")[0].upper()
         if self.experience and self.experience.price:
             # Assuming you have a field in Experience like platform_fee_percent = 10
             fee_percent = getattr(self.experience, "platform_fee_percent", 10)

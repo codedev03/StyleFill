@@ -20,6 +20,8 @@
                             <li><a class="dropdown-item" href="{% url 'update_info' %}">User Info</a></li>
                             <li><hr class="dropdown-divider" /></li>
                             <li><a class="dropdown-item" href="{% url 'track_orders' %}">My Orders</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" href="{% url 'my_tickets' %}">🎟 My Bookings</a></li>
                         </ul>
                     </li>
                 {% if user.is_superuser %}

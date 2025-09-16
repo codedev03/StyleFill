@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="tickets-wrapper">
+    <h2 class="ticket-header">🎟️ My Cute Passes 🎀</h2>
+
+    {% for booking in bookings %}
+    <div class="ticket-pass" id="ticket-{{ booking.id }}">
+        <div class="ticket-top">
+            <h3>🌸 {{ booking.experience.title }} 🌸</h3>
+            <p class="owner">This ticket belongs to <strong>{{ request.user.first_name }}</strong> 🎀</p>
+        </div>
+
+    <div class="ticket-body">
+        <p><strong>Code:</strong> {{ booking.booking_code }}</p>
+        <p><strong>Status:</strong> {{ booking.booking_status }}</p>
+        <p><strong>Guests:</strong> {{ booking.quantity }}</p>
+        <p><strong>Investment in Fun 🎟️:</strong> ₹{{ booking.total_price }}</p>
+        <p><strong>Date:</strong> {{ booking.experience.date }}</p>
+        <div class="qr-section">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data={{ booking.booking_code }}" alt="QR Code">
+        </div>
+    </div>
+
+    <div class="ticket-footer">
+        <p class="watermark">😍 StyleFill (❁´◡`❁)</p>
+        {% if booking.booking_status == "CONFIRMED" %}
+        <form method="post" action="{% url 'cancel_booking' booking.id %}">
+            {% csrf_token %}
+            <button type="submit" class="cancel-btn">Cancel & Refund 💔</button>
+        </form>
+        {% endif %}
+        <button class="download-btn" onclick="downloadTicket({{ booking.id }})">💾 Save Ticket</button>
+    </div>
+    </div>
+    {% empty %}
+    <p>You don’t have any bookings yet. 🥺</p>
+    {% endfor %}
+</div>
+
+<!-- Sparkle Animation -->
+<div class="sparkles"></div>
+
+<style>
+.tickets-wrapper {
+    text-align: center;
+    padding: 20px;
+}
+
+.ticket-header {
+    font-size: 2rem;
+    color: #ff69b4;
+    margin-bottom: 20px;
+}
+
+.ticket-pass {
+    width: 300px;
+    margin: 20px auto;
+    padding: 15px;
+    border: 3px dashed #f9c6d4;
+    border-radius: 20px;
+    background: #fffafc;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(255,182,193,0.4);
+    animation: fadeIn 1s ease;
+}
+
+.ticket-top h3 {
+    color: #ff6f91;
+    font-size: 1.3rem;
+}
+
+.owner {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.qr-section {
+    margin: 15px 0;
+}
+
+.ticket-footer {
+    margin-top: 10px;
+}
+
+.watermark {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.cancel-btn, .download-btn {
+    background: #ffd6e0;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.cancel-btn:hover, .download-btn:hover {
+    transform: scale(1.1);
+    background: #ffb6c1;
+}
+
+/* Sparkle animation */
+.sparkles::before, .sparkles::after {
+    content: "✨";
+    font-size: 2rem;
+    position: fixed;
+    animation: sparkle 3s infinite ease-in-out;
+    opacity: 0.8;
+}
+.sparkles::after {
+    left: 80%;
+    top: 20%;
+}
+.sparkles::before {
+    left: 10%;
+    top: 70%;
+}
+@keyframes sparkle {
+    0%,100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.3) rotate(20deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<!-- HTML2Canvas for download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+function downloadTicket(id) {
+    const ticket = document.getElementById("ticket-" + id);
+    html2canvas(ticket).then(canvas => {
+        let link = document.createElement("a");
+        link.download = "StyleFill_Ticket.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+</script>
+{% endblock %}
